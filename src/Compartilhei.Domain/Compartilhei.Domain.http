@@ -1,0 +1,6 @@
+@Compartilhei.Domain_HostAddress = http://localhost:5014
+
+GET {{Compartilhei.Domain_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,46 @@
+@Compartilhei.Api_HostAddress = http://localhost:5290
+
+POST {{Compartilhei.Api_HostAddress}}/api/events
+Content-Type: application/json
+
+{
+  "name": "Casamento Rodrigo & Jennifer",
+  "slug": "casamento-rodrigo-jennifer"
+}
+
+###
+GET {{Compartilhei.Api_HostAddress}}/api/events/casamento-rodrigo-jennifer
+Content-Type: application/json
+
+###
+
+POST {{Compartilhei.Api_HostAddress}}/api/events/0f1b8992-b565-4ffd-bcee-6a8aceb7ea67/albums
+Content-Type: application/json
+
+{
+  "name": "Extra",
+  "displayOrder": 1
+}
+
+###
+
+GET {{Compartilhei.Api_HostAddress}}/api/events/0f1b8992-b565-4ffd-bcee-6a8aceb7ea67/albums
+Content-Type: application/json
+
+
+### Request upload - sucesso
+POST {{Compartilhei.Api_HostAddress}}/api/events/casamento-rodrigo-jennifer/albums/4300237F-938C-4451-A04C-8A25A4BBE268/photos/upload-request
+Content-Type: application/json
+
+{
+  "fileName": "kkk.png",
+  "fileSize": 1048576,
+  "contentType": "image/png"
+}
+
+###
+
+POST {{Compartilhei.Api_HostAddress}}/api/events/casamento-rodrigo-jennifer/albums/4300237f-938c-4451-a04c-8a25a4bbe268/photos/7da3f91c-4cb1-440f-8b4a-77fd27723efa/confirm-upload
+
+### Galeria — primeira página
+GET {{Compartilhei.Api_HostAddress}}/api/events/casamento-rodrigo-jennifer/albums/4300237f-938c-4451-a04c-8a25a4bbe268/photos?limit=30

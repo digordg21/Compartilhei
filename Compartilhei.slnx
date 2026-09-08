@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/Itens de Solução/">
+    <File Path=".gitignore" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <File Path="docker-compose.yml" />
+    <Project Path="src/Compartilhei.Api/Compartilhei.Api.csproj" />
+    <Project Path="src/Compartilhei.Application/Compartilhei.Application.csproj" />
+    <Project Path="src/Compartilhei.Domain/Compartilhei.Domain.csproj" />
+    <Project Path="src/Compartilhei.Infrastructure/Compartilhei.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Compartilhei.IntegrationTests/Compartilhei.IntegrationTests.csproj" />
+    <Project Path="tests/Compartilhei.UnitTests/Compartilhei.UnitTests.csproj" />
+  </Folder>
+</Solution>

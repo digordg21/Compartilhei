@@ -1,0 +1,6 @@
+@Compartilhei.Infrastructure_HostAddress = http://localhost:5239
+
+GET {{Compartilhei.Infrastructure_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
