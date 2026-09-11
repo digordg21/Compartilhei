@@ -1,22 +1,26 @@
 ﻿using Compartilhei.Application.Abstractions.Processing;
 using Compartilhei.Application.Abstractions.Storage;
 using Compartilhei.Application.Photos.Processing;
+using Compartilhei.Infrastructure.Images.Configuration;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
+using Microsoft.Extensions.Options;
 
 namespace Compartilhei.Infrastructure.Images;
 
 public sealed class ImageSharpPhotoProcessor : IPhotoProcessor
 {
-    private const int DisplayMaxSize = 2000;
-    private const int ThumbnailMaxSize = 400;
 
     private readonly IPhotoFileStorage _storage;
+    private readonly ImageProcessingOptions _options;
 
-    public ImageSharpPhotoProcessor(IPhotoFileStorage storage)
+    public ImageSharpPhotoProcessor(
+        IPhotoFileStorage storage,
+        IOptions<ImageProcessingOptions> options)
     {
         _storage = storage;
+        _options = options.Value;
     }
 
     public async Task<PhotoProcessingResult> ProcessAsync(
@@ -44,8 +48,8 @@ public sealed class ImageSharpPhotoProcessor : IPhotoProcessor
                 context.Resize(new ResizeOptions
                 {
                     Size = new Size(
-                        DisplayMaxSize,
-                        DisplayMaxSize),
+                        _options.DisplayMaxWidth,
+                        _options.DisplayMaxHeight),
                     Mode = ResizeMode.Max
                 });
             });
@@ -56,7 +60,7 @@ public sealed class ImageSharpPhotoProcessor : IPhotoProcessor
             displayStream,
             new JpegEncoder
             {
-                Quality = 85
+                Quality = _options.DisplayQuality
             },
             cancellationToken);
 
@@ -74,8 +78,8 @@ public sealed class ImageSharpPhotoProcessor : IPhotoProcessor
                 context.Resize(new ResizeOptions
                 {
                     Size = new Size(
-                        ThumbnailMaxSize,
-                        ThumbnailMaxSize),
+                        _options.ThumbnailMaxWidth,
+                        _options.ThumbnailMaxHeight),
                     Mode = ResizeMode.Max
                 });
             });
@@ -86,7 +90,7 @@ public sealed class ImageSharpPhotoProcessor : IPhotoProcessor
             thumbnailStream,
             new JpegEncoder
             {
-                Quality = 80
+                Quality = _options.ThumbnailQuality,
             },
             cancellationToken);
 

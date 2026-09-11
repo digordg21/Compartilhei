@@ -44,3 +44,13 @@ POST {{Compartilhei.Api_HostAddress}}/api/events/casamento-rodrigo-jennifer/albu
 
 ### Galeria — primeira página
 GET {{Compartilhei.Api_HostAddress}}/api/events/casamento-rodrigo-jennifer/albums/4300237f-938c-4451-a04c-8a25a4bbe268/photos?limit=30
+
+### favoritar foto
+POST {{Compartilhei.Api_HostAddress}}/api/events/casamento-rodrigo-jennifer/albums/4300237f-938c-4451-a04c-8a25a4bbe268/photos/7da3f91c-4cb1-440f-8b4a-77fd27723efa/favorite
+
+### desfavoritar foto
+DELETE {{Compartilhei.Api_HostAddress}}/api/events/casamento-rodrigo-jennifer/albums/4300237f-938c-4451-a04c-8a25a4bbe268/photos/7da3f91c-4cb1-440f-8b4a-77fd27723efa/favorite
+
+
+### listar favoritos
+GET {{Compartilhei.Api_HostAddress}}/api/events/casamento-rodrigo-jennifer/albums/4300237f-938c-4451-a04c-8a25a4bbe268/photos/favorites

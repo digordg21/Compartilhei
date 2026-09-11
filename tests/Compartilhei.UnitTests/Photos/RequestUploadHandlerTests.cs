@@ -37,7 +37,11 @@ public class RequestUploadHandlerTests
 
         var validator = new PhotoUploadValidator();
 
+        var eventRepository = new FakeEventRepository();
+        eventRepository.Seed(eventEntity);
+
         var handler = new RequestUploadHandler(
+            eventRepository,
             albumRepository,
             photoRepository,
             photoStorage,
@@ -117,9 +121,13 @@ public class RequestUploadHandlerTests
         var guestSessionAccessor =
             new FakeGuestSessionAccessor(Guid.NewGuid());
 
+        var eventRepository = new FakeEventRepository();
+        eventRepository.Seed(eventEntity);
+
         var validator = new PhotoUploadValidator();
 
         var handler = new RequestUploadHandler(
+            eventRepository,
             albumRepository,
             photoRepository,
             photoStorage,
@@ -171,9 +179,13 @@ public class RequestUploadHandlerTests
         var guestSessionAccessor =
             new FakeGuestSessionAccessor(Guid.NewGuid());
 
+        var eventRepository = new FakeEventRepository();
+        eventRepository.Seed(eventEntity);
+
         var validator = new PhotoUploadValidator();
 
         var handler = new RequestUploadHandler(
+            eventRepository,
             albumRepository,
             photoRepository,
             photoStorage,
@@ -228,9 +240,13 @@ public class RequestUploadHandlerTests
         var guestSessionAccessor =
             new FakeGuestSessionAccessor(Guid.NewGuid());
 
+        var eventRepository = new FakeEventRepository();
+        eventRepository.Seed(eventEntity);
+
         var validator = new PhotoUploadValidator();
 
         var handler = new RequestUploadHandler(
+            eventRepository,
             albumRepository,
             photoRepository,
             photoStorage,
@@ -280,9 +296,13 @@ public class RequestUploadHandlerTests
         var guestSessionAccessor =
             new FakeGuestSessionAccessor(Guid.NewGuid());
 
+        var eventRepository = new FakeEventRepository();
+        eventRepository.Seed(eventEntity);
+
         var validator = new PhotoUploadValidator();
 
         var handler = new RequestUploadHandler(
+            eventRepository,
             albumRepository,
             photoRepository,
             photoStorage,
@@ -303,6 +323,54 @@ public class RequestUploadHandlerTests
 
         // Assert
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(act);
+
+        Assert.False(photoRepository.AddCalled);
+        Assert.False(photoStorage.Called);
+    }
+
+    [Fact]
+    public async Task Should_reject_when_album_does_not_belong_to_event()
+    {
+        var requestedEvent = new Event(
+            "Evento A",
+            "evento-a");
+
+        var albumEvent = new Event(
+            "Evento B",
+            "evento-b");
+
+        var album = new Album(
+            albumEvent.Id,
+            "Cerimônia",
+            1);
+
+        var eventRepository = new FakeEventRepository();
+        eventRepository.Seed(requestedEvent);
+
+        var albumRepository = new FakeAlbumRepository();
+        albumRepository.SeedAlbum(album);
+
+        var photoRepository = new FakePhotoRepository();
+        var photoStorage = new FakePhotoStorage();
+
+        var handler = new RequestUploadHandler(
+            eventRepository,
+            albumRepository,
+            photoRepository,
+            photoStorage,
+            new FakeGuestSessionAccessor(Guid.NewGuid()),
+            new PhotoUploadValidator());
+
+        var action = () => handler.HandleAsync(
+            new RequestUploadCommand(
+                requestedEvent.Slug,
+                album.Id,
+                "foto.jpg",
+                1000,
+                "image/jpeg"),
+            CancellationToken.None);
+
+        await Assert.ThrowsAsync<NotFoundException>(action);
 
         Assert.False(photoRepository.AddCalled);
         Assert.False(photoStorage.Called);

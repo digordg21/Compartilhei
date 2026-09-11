@@ -1,9 +1,14 @@
 ﻿using Compartilhei.Api.Contracts.Photos.RequestUpload;
 using Compartilhei.Api.Contracts.Photos.ConfirmUpload;
 using Compartilhei.Api.Contracts.Photos.Gallery;
+using Compartilhei.Api.Contracts.Photos.Favorites;
+using Compartilhei.Api.Contracts.Photos.Favorites.GetFavorites;
+using Compartilhei.Application.Photos.Favorites.GetFavorites;
+using Compartilhei.Application.Photos.Favorites;
 using Compartilhei.Application.Photos.Gallery;
 using Compartilhei.Application.Photos.RequestUpload;
 using Compartilhei.Application.Photos.ConfirmUpload;
+
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -87,12 +92,82 @@ public sealed class PhotosController : ControllerBase
                 item.DisplayUrl,
                 item.Width,
                 item.Height,
-                item.CreatedAt))
+                item.CreatedAt,
+                item.IsFavorite))
             .ToList();
 
         return Ok(new PhotoGalleryResponse(
             items,
             result.NextCursor,
             result.HasMore));
+    }
+
+    [HttpPost("{photoId:guid}/favorite")]
+    public async Task<ActionResult<FavoritePhotoResponse>> Favorite(
+        string eventSlug,
+        Guid albumId,
+        Guid photoId,
+        [FromServices] FavoritePhotoHandler handler,
+        CancellationToken cancellationToken)
+     {
+        var result = await handler.HandleAsync(
+            new FavoritePhotoCommand(
+                eventSlug,
+                albumId,
+                photoId),
+            cancellationToken);
+
+        return Ok(
+            new FavoritePhotoResponse(
+                result.IsFavorited,
+                result.FavoriteCount));
+    }
+
+    [HttpDelete("{photoId:guid}/favorite")]
+    public async Task<ActionResult<FavoritePhotoResponse>> Unfavorite(
+        string eventSlug,
+        Guid albumId,
+        Guid photoId,
+        [FromServices] UnfavoritePhotoHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(
+            new FavoritePhotoCommand(
+                eventSlug,
+                albumId,
+                photoId),
+            cancellationToken);
+
+        return Ok(
+            new FavoritePhotoResponse(
+                result.IsFavorited,
+                result.FavoriteCount));
+    }
+
+    [HttpGet("favorites")]
+    public async Task<ActionResult<GetFavoritesResponse>> GetFavorites(
+        string eventSlug,
+        Guid albumId,
+        [FromServices] GetFavoritesHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(
+            new GetFavoritesQuery(
+                eventSlug,
+                albumId),
+            cancellationToken);
+
+        var items = result.Items
+            .Select(item => new GetFavoritesItemResponse(
+                item.PhotoId,
+                item.FileName,
+                item.ThumbnailUrl,
+                item.DisplayUrl,
+                item.Width,
+                item.Height,
+                item.CreatedAt))
+            .ToList();
+
+        return Ok(new GetFavoritesResponse(items));
     }
 }

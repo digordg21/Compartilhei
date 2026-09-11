@@ -377,6 +377,21 @@ public class PhotoTests
         Assert.Throws<InvalidOperationException>(act);
     }
 
+    [Fact]
+    public void Should_requeue_processing_photo_as_uploaded()
+    {
+        var photo = CreatePhoto();
+
+        photo.MarkUploaded(
+            $"events/event/albums/album/original/{photo.Id}.jpg");
+
+        photo.MarkProcessing();
+
+        photo.RequeueForProcessing();
+
+        Assert.Equal(PhotoStatus.Uploaded, photo.Status);
+    }
+
     private static Photo CreatePhoto()
     {
         return new Photo(

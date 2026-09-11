@@ -11,11 +11,13 @@ public sealed class RequestUploadHandler
 {
     private readonly IAlbumRepository _albumRepository;
     private readonly IPhotoRepository _photoRepository;
+    private readonly IEventRepository _eventRepository;
     private readonly IPhotoStorage _photoStorage;
     private readonly IGuestSessionAccessor _guestSessionAccessor;
     private readonly PhotoUploadValidator _validator;
 
     public RequestUploadHandler(
+        IEventRepository eventRepository,
         IAlbumRepository albumRepository,
         IPhotoRepository photoRepository,
         IPhotoStorage photoStorage,
@@ -27,6 +29,7 @@ public sealed class RequestUploadHandler
         _photoStorage = photoStorage;
         _guestSessionAccessor = guestSessionAccessor;
         _validator = validator;
+        _eventRepository = eventRepository;
     }
 
     public async Task<RequestUploadResult> HandleAsync(
@@ -38,14 +41,24 @@ public sealed class RequestUploadHandler
             command.FileSize,
             command.ContentType);
 
+        var eventEntity = await _eventRepository.GetBySlugAsync(
+            command.EventSlug,
+            cancellationToken);
+
+        if (eventEntity == null || !eventEntity.IsActive)
+        {
+            throw new NotFoundException(
+                $"Event not found.");
+        }
+
         var album = await _albumRepository.GetActiveByIdAsync(
             command.AlbumId,
             cancellationToken);
 
-        if (album is null)
+        if (album is null || album.EventId != eventEntity.Id)
         {
             throw new NotFoundException(
-                $"Active album '{command.AlbumId}' was not found.");
+                $"Album not found.");
         }
 
         var guestSessionId =
@@ -63,8 +76,8 @@ public sealed class RequestUploadHandler
 
         var authorization =
             await _photoStorage.CreateUploadAuthorizationAsync(
-                album.EventId,
-                command.AlbumId,
+                eventEntity.Id,
+                album.Id,
                 photo.Id,
                 command.FileName,
                 command.ContentType,

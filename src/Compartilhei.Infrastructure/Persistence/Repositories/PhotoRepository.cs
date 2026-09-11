@@ -65,13 +65,36 @@ public sealed class PhotoRepository : IPhotoRepository
             query = query.Where(photo =>
                 photo.CreatedAt < cursorCreatedAt.Value ||
                 (photo.CreatedAt == cursorCreatedAt.Value &&
-                 photo.Id.CompareTo(cursorId.Value) < 0));
+                 photo.Id < cursorId.Value));
         }
 
         return await query
             .OrderByDescending(photo => photo.CreatedAt)
             .ThenByDescending(photo => photo.Id)
             .Take(limit)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Photo>> GetAwaitingProcessingAsync(
+    CancellationToken cancellationToken)
+    {
+        return await _dbContext.Photos
+            .Where(photo =>
+                photo.Status == PhotoStatus.Uploaded ||
+                photo.Status == PhotoStatus.Processing)
+            .OrderBy(photo => photo.CreatedAt)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Photo>> GetAvailableByIdsAsync(
+        IReadOnlyCollection<Guid> photoIds,
+        CancellationToken cancellationToken)
+    {
+        return await _dbContext.Photos
+            .AsNoTracking()
+            .Where(photo =>
+                photoIds.Contains(photo.Id) &&
+                photo.Status == PhotoStatus.Available)
             .ToListAsync(cancellationToken);
     }
 }

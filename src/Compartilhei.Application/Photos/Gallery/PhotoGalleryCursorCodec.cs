@@ -37,4 +37,29 @@ public static class PhotoGalleryCursorCodec
             return null;
         }
     }
+
+    public static bool TryDecode(
+        string cursor,
+        out PhotoGalleryCursor? result)
+    {
+        result = null;
+
+        try
+        {
+            var json = Encoding.UTF8.GetString(
+                Convert.FromBase64String(cursor));
+
+            result = JsonSerializer.Deserialize<PhotoGalleryCursor>(json);
+
+            return result is not null;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+        catch (JsonException)
+        {
+            return false;
+        }
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using Compartilhei.Application.Abstractions.Persistence;
 using Compartilhei.Application.Abstractions.Storage;
+using Compartilhei.Application.Abstractions.Identity;
 using Compartilhei.Application.Exceptions;
 
 namespace Compartilhei.Application.Photos.Gallery;
@@ -13,17 +14,23 @@ public sealed class GetPhotoGalleryHandler
     private readonly IAlbumRepository _albumRepository;
     private readonly IPhotoRepository _photoRepository;
     private readonly IPhotoStorage _photoStorage;
+    private readonly IFavoriteRepository _favoriteRepository;
+    private readonly IGuestSessionAccessor _guestSessionAccessor;
 
     public GetPhotoGalleryHandler(
         IEventRepository eventRepository,
         IAlbumRepository albumRepository,
         IPhotoRepository photoRepository,
-        IPhotoStorage photoStorage)
+        IPhotoStorage photoStorage,
+        IFavoriteRepository favoriteRepository,
+        IGuestSessionAccessor guestSessionAccessor)
     {
         _eventRepository = eventRepository;
         _albumRepository = albumRepository;
         _photoRepository = photoRepository;
         _photoStorage = photoStorage;
+        _favoriteRepository = favoriteRepository;
+        _guestSessionAccessor = guestSessionAccessor;
     }
 
     public async Task<PhotoGalleryResult> HandleAsync(
@@ -53,7 +60,16 @@ public sealed class GetPhotoGalleryHandler
             1,
             MaxLimit);
 
-        var cursor = PhotoGalleryCursorCodec.Decode(query.Cursor);
+        PhotoGalleryCursor? cursor = null;
+
+        if (!string.IsNullOrWhiteSpace(query.Cursor) &&
+            !PhotoGalleryCursorCodec.TryDecode(
+                query.Cursor,
+                out cursor))
+        {
+            throw new BusinessRuleException(
+                "The gallery cursor is invalid.");
+        }
 
         var photos = await _photoRepository.GetAvailableByAlbumAsync(
             album.Id,
@@ -64,6 +80,18 @@ public sealed class GetPhotoGalleryHandler
 
         var hasMore = photos.Count > limit;
         var page = photos.Take(limit).ToList();
+
+        var guestSessionId = _guestSessionAccessor.GuestSessionId;
+
+        var photoIds = page
+            .Select(photo => photo.Id)
+            .ToArray();
+
+        var favoriteSummaries = await _favoriteRepository
+            .GetSummariesByPhotoIdsAsync(
+                photoIds,
+                guestSessionId,
+                cancellationToken);
 
         var items = new List<PhotoGalleryItemResult>(page.Count);
 
@@ -77,6 +105,10 @@ public sealed class GetPhotoGalleryHandler
                 photo.DisplayPath!,
                 cancellationToken);
 
+            favoriteSummaries.TryGetValue(
+            photo.Id,
+            out var favoriteSummary);
+
             items.Add(new PhotoGalleryItemResult(
                 photo.Id,
                 photo.FileName,
@@ -84,12 +116,13 @@ public sealed class GetPhotoGalleryHandler
                 displayUrl,
                 photo.Width!.Value,
                 photo.Height!.Value,
-                photo.CreatedAt));
+                photo.CreatedAt,
+                favoriteSummary?.IsFavorited ?? false));
         }
 
         string? nextCursor = null;
 
-        if (hasMore)
+        if (hasMore && page.Count > 0)
         {
             var lastPhoto = page[^1];
 

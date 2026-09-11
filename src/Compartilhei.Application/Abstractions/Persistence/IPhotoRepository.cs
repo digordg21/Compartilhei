@@ -22,4 +22,11 @@ public interface IPhotoRepository
         Guid? cursorId,
         int limit,
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Photo>> GetAwaitingProcessingAsync(
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Photo>> GetAvailableByIdsAsync(
+        IReadOnlyCollection<Guid> photoIds,
+        CancellationToken cancellationToken);
 }

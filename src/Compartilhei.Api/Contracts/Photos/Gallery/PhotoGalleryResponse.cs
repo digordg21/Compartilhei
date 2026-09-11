@@ -12,4 +12,5 @@ public sealed record PhotoGalleryItemResponse(
     string DisplayUrl,
     int Width,
     int Height,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    bool IsFavorite);

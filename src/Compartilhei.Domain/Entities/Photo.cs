@@ -165,6 +165,13 @@ public sealed class Photo
         Status = PhotoStatus.Failed;
     }
 
+    public void RequeueForProcessing()
+    {
+        EnsureStatus(PhotoStatus.Processing);
+
+        Status = PhotoStatus.Uploaded;
+    }
+
     private void EnsureStatus(PhotoStatus expectedStatus)
     {
         if (Status != expectedStatus)

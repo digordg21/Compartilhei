@@ -25,6 +25,8 @@ public sealed class PhotoProcessingBackgroundService : BackgroundService
         _logger.LogInformation(
             "Photo processing background service started.");
 
+        await RecoverAwaitingPhotosAsync(stoppingToken);
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -51,6 +53,39 @@ public sealed class PhotoProcessingBackgroundService : BackgroundService
 
         _logger.LogInformation(
             "Photo processing background service stopped.");
+    }
+
+    private async Task RecoverAwaitingPhotosAsync(
+    CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+
+            var handler = scope.ServiceProvider
+                .GetRequiredService<RecoverPhotoProcessingHandler>();
+
+            var recoveredCount = await handler.HandleAsync(
+                cancellationToken);
+
+            if (recoveredCount > 0)
+            {
+                _logger.LogInformation(
+                    "Requeued {PhotoCount} photo(s) after startup.",
+                    recoveredCount);
+            }
+        }
+        catch (OperationCanceledException)
+            when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(
+                exception,
+                "Unable to recover photos after startup.");
+        }
     }
 
     private async Task ProcessPhotoAsync(

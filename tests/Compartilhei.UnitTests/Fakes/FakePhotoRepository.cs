@@ -79,4 +79,28 @@ public sealed class FakePhotoRepository : IPhotoRepository
 
         return Task.FromResult(result);
     }
+
+    public Task<IReadOnlyList<Photo>> GetAwaitingProcessingAsync(
+    CancellationToken cancellationToken)
+    {
+        IReadOnlyList<Photo> result = _photos
+            .Where(photo =>
+                photo.Status == PhotoStatus.Uploaded ||
+                photo.Status == PhotoStatus.Processing)
+            .OrderBy(photo => photo.CreatedAt)
+            .ToList();
+
+        return Task.FromResult(result);
+    }
+
+    public Task<IReadOnlyList<Photo>> GetAvailableByIdsAsync(
+        IReadOnlyCollection<Guid> photoIds,
+        CancellationToken cancellationToken)
+    {
+        IReadOnlyList<Photo> result = _photos
+            .Where(photo => photoIds.Contains(photo.Id) &&
+                            photo.Status == PhotoStatus.Available)
+            .ToList();
+        return Task.FromResult(result);
+    }
 }
