@@ -1,0 +1,52 @@
+:root {
+  /* =========================
+     Colors
+     ========================= */
+
+  --color-background: #FFE8B8;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #FEFEFE;
+
+  --color-primary: #734949;
+  --color-secondary: #8F6060;
+  --color-accent: #DAA092;
+
+  /* =========================
+     Typography
+     ========================= */
+
+  --font-display: "Brother Signature", cursive;
+  --font-handwritten: "Caveat", cursive;
+  --font-body: "Segoe UI", sans-serif;
+
+  /* =========================
+     Layout
+     ========================= */
+
+  --page-width: 390px;
+  --page-height: 844px;
+
+  /* =========================
+     Spacing
+     ========================= */
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* =========================
+     Radius
+     ========================= */
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* =========================
+     Shadows
+     ========================= */
+
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.18);
+}

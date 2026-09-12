@@ -34,8 +34,9 @@ public class GetPhotoGalleryHandlerTests
         for (var index = 0; index < 31; index++)
         {
             await photoRepository.AddAsync(
-                CreateAvailablePhoto(album.Id),
-                CancellationToken.None);
+                CreateAvailablePhoto(album.Id, 
+                    FakeGuestSessionAccessor.GuestSessionId),
+                    CancellationToken.None);
         }
 
         var photoStorage = new FakePhotoStorage();
@@ -91,8 +92,9 @@ public class GetPhotoGalleryHandlerTests
         for (var index = 0; index < 31; index++)
         {
             await photoRepository.AddAsync(
-                CreateAvailablePhoto(album.Id),
-                CancellationToken.None);
+                CreateAvailablePhoto(album.Id, 
+                    FakeGuestSessionAccessor.GuestSessionId),
+                    CancellationToken.None);
         }
 
         var handler = new GetPhotoGalleryHandler(
@@ -154,8 +156,9 @@ public class GetPhotoGalleryHandlerTests
         for (var index = 0; index < 30; index++)
         {
             await photoRepository.AddAsync(
-                CreateAvailablePhoto(album.Id),
-                CancellationToken.None);
+                CreateAvailablePhoto(album.Id, 
+                    FakeGuestSessionAccessor.GuestSessionId),
+                    CancellationToken.None);
         }
 
         var handler = new GetPhotoGalleryHandler(
@@ -206,8 +209,9 @@ public class GetPhotoGalleryHandlerTests
         for (var index = 0; index < 31; index++)
         {
             await photoRepository.AddAsync(
-                CreateAvailablePhoto(album.Id),
-                CancellationToken.None);
+                CreateAvailablePhoto(album.Id, 
+                    FakeGuestSessionAccessor.GuestSessionId),
+                    CancellationToken.None);
         }
 
         var handler = new GetPhotoGalleryHandler(
@@ -258,8 +262,9 @@ public class GetPhotoGalleryHandlerTests
         for (var index = 0; index < 60; index++)
         {
             await photoRepository.AddAsync(
-                CreateAvailablePhoto(album.Id),
-                CancellationToken.None);
+                CreateAvailablePhoto(album.Id,
+                    FakeGuestSessionAccessor.GuestSessionId),
+                    CancellationToken.None);
         }
 
         var handler = new GetPhotoGalleryHandler(
@@ -310,8 +315,9 @@ public class GetPhotoGalleryHandlerTests
         for (var index = 0; index < 5; index++)
         {
             await photoRepository.AddAsync(
-                CreateAvailablePhoto(album.Id),
-                CancellationToken.None);
+                CreateAvailablePhoto(album.Id, 
+                    FakeGuestSessionAccessor.GuestSessionId),
+                    CancellationToken.None);
         }
 
         var handler = new GetPhotoGalleryHandler(
@@ -457,11 +463,11 @@ public class GetPhotoGalleryHandlerTests
 
         var photoRepository = new FakePhotoRepository();
 
-        var availablePhoto = CreateAvailablePhoto(album.Id);
+        var FakeGuestSessionAccessor = new FakeGuestSessionAccessor(Guid.NewGuid());
+
+        var availablePhoto = CreateAvailablePhoto(album.Id, FakeGuestSessionAccessor.GuestSessionId);
 
         var favoriteRepository = new FakeFavoriteRepository();
-
-        var FakeGuestSessionAccessor = new FakeGuestSessionAccessor(Guid.NewGuid());
 
         var uploadedPhoto = new Photo(
             album.Id,
@@ -520,8 +526,10 @@ public class GetPhotoGalleryHandlerTests
 
         var photoRepository = new FakePhotoRepository();
 
-        var olderPhoto = CreateAvailablePhoto(album.Id);
-        var newerPhoto = CreateAvailablePhoto(album.Id);
+        var FakeGuestSessionAccessor = new FakeGuestSessionAccessor(Guid.NewGuid());
+
+        var olderPhoto = CreateAvailablePhoto(album.Id, FakeGuestSessionAccessor.GuestSessionId);
+        var newerPhoto = CreateAvailablePhoto(album.Id, FakeGuestSessionAccessor.GuestSessionId);
 
         typeof(Photo)
             .GetProperty(nameof(Photo.CreatedAt))!
@@ -536,8 +544,6 @@ public class GetPhotoGalleryHandlerTests
                 DateTimeOffset.UtcNow);
 
         var favoriteRepository = new FakeFavoriteRepository();
-
-        var FakeGuestSessionAccessor = new FakeGuestSessionAccessor(Guid.NewGuid());
 
         await photoRepository.AddAsync(
             olderPhoto,
@@ -594,12 +600,13 @@ public class GetPhotoGalleryHandlerTests
 
         var photoRepository = new FakePhotoRepository();
 
-        var requestedPhoto = CreateAvailablePhoto(requestedAlbum.Id);
-        var anotherPhoto = CreateAvailablePhoto(anotherAlbum.Id);
+        var FakeGuestSessionAccessor = new FakeGuestSessionAccessor(Guid.NewGuid());
+
+        var requestedPhoto = CreateAvailablePhoto(requestedAlbum.Id, FakeGuestSessionAccessor.GuestSessionId);
+        var anotherPhoto = CreateAvailablePhoto(anotherAlbum.Id, FakeGuestSessionAccessor.GuestSessionId);
 
         var favoriteRepository = new FakeFavoriteRepository();
 
-        var FakeGuestSessionAccessor = new FakeGuestSessionAccessor(Guid.NewGuid());
 
         await photoRepository.AddAsync(
             requestedPhoto,
@@ -673,13 +680,15 @@ public class GetPhotoGalleryHandlerTests
                 CancellationToken.None));
     }
 
-    private static Photo CreateAvailablePhoto(Guid albumId)
+    private static Photo CreateAvailablePhoto(
+        Guid albumId,
+        Guid guestSessionId)
     {
         var photo = new Photo(
             albumId,
             "foto.jpg",
-            1024,
-            Guid.NewGuid());
+            1_000,
+            guestSessionId);
 
         photo.MarkUploaded(
             $"events/event/albums/{albumId}/original/{photo.Id}.jpg");
@@ -708,7 +717,9 @@ public class GetPhotoGalleryHandlerTests
 
         var guestSessionId = Guid.NewGuid();
 
-        var photo = CreateAvailablePhoto(album.Id);
+        var guestSessionAccessor = new FakeGuestSessionAccessor(guestSessionId);
+
+        var photo = CreateAvailablePhoto(album.Id, guestSessionId);
 
         var eventRepository = new FakeEventRepository();
         eventRepository.Seed(eventEntity);
@@ -729,9 +740,6 @@ public class GetPhotoGalleryHandlerTests
                 photo.Id,
                 guestSessionId),
             CancellationToken.None);
-
-        var guestSessionAccessor =
-            new FakeGuestSessionAccessor(guestSessionId);
 
         var handler = new GetPhotoGalleryHandler(
             eventRepository,
@@ -768,7 +776,9 @@ public class GetPhotoGalleryHandlerTests
         var favoriteSessionId = Guid.NewGuid();
         var currentSessionId = Guid.NewGuid();
 
-        var photo = CreateAvailablePhoto(album.Id);
+        var guestSessionAccessor = new FakeGuestSessionAccessor(currentSessionId);
+
+        var photo = CreateAvailablePhoto(album.Id, guestSessionAccessor.GuestSessionId);
 
         var eventRepository = new FakeEventRepository();
         eventRepository.Seed(eventEntity);
@@ -789,9 +799,6 @@ public class GetPhotoGalleryHandlerTests
                 photo.Id,
                 favoriteSessionId),
             CancellationToken.None);
-
-        var guestSessionAccessor =
-            new FakeGuestSessionAccessor(currentSessionId);
 
         var handler = new GetPhotoGalleryHandler(
             eventRepository,
@@ -827,7 +834,7 @@ public class GetPhotoGalleryHandlerTests
 
         var guestSessionId = Guid.NewGuid();
 
-        var photo = CreateAvailablePhoto(album.Id);
+        var photo = CreateAvailablePhoto(album.Id, guestSessionId);
 
         var eventRepository = new FakeEventRepository();
         eventRepository.Seed(eventEntity);

@@ -5,6 +5,7 @@ using Compartilhei.Api.Contracts.Photos.Favorites;
 using Compartilhei.Api.Contracts.Photos.Favorites.GetFavorites;
 using Compartilhei.Application.Photos.Favorites.GetFavorites;
 using Compartilhei.Application.Photos.Favorites;
+using Compartilhei.Application.Photos.Favorites.DownloadFavorites;
 using Compartilhei.Application.Photos.Gallery;
 using Compartilhei.Application.Photos.RequestUpload;
 using Compartilhei.Application.Photos.ConfirmUpload;
@@ -169,5 +170,24 @@ public sealed class PhotosController : ControllerBase
             .ToList();
 
         return Ok(new GetFavoritesResponse(items));
+    }
+
+    [HttpGet("favorites/download")]
+    public async Task<IActionResult> DownloadFavorites(
+    string eventSlug,
+    Guid albumId,
+    [FromServices] DownloadFavoritesHandler handler,
+    CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(
+            new DownloadFavoritesQuery(
+                eventSlug,
+                albumId),
+            cancellationToken);
+
+        return File(
+            result.Content,
+            result.ContentType,
+            result.FileName);
     }
 }

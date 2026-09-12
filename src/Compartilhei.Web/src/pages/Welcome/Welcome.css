@@ -1,0 +1,131 @@
+.welcome {
+  position: relative;
+  width: min(100%, var(--page-width));
+  min-height: var(--page-height);
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--color-background);
+}
+
+.welcome__hero {
+  position: relative;
+  width: 100%;
+  height: 254.71px;
+}
+
+.welcome__hero-title {
+  position: absolute;
+  top: 80px;
+  left: 25px;
+  width: 165px;
+  height: auto;
+}
+
+.welcome__background {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 390px;
+  height: 607.98px;
+  transform: translateX(-50%);
+}
+
+.welcome__content {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.welcome__texto-luna {
+  position: absolute;
+  top: 254.47px;
+  left: 21.56px;
+  width: 351.08px;
+  height: 271.43px;
+}
+
+.welcome__action {
+  position: absolute;
+  z-index: 3;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  width: 100px;
+
+  cursor: pointer;
+}
+
+.welcome__action-icon {
+  position: relative;
+  width: 78.89px;
+  height: 79.35px;
+  flex-shrink: 0;
+
+  overflow: hidden;
+  border-radius: 18px;
+
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.welcome__action-base,
+.welcome__action-symbol {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+}
+
+.welcome__action-symbol {
+  object-fit: contain;
+}
+
+.welcome__action-label {
+  display: block;
+  height: auto;
+  margin-top: 10px;
+}
+
+.welcome__action--camera {
+  left: 68px;
+  top: 548.97px;
+}
+
+.welcome__action--camera .welcome__action-label {
+  width: 76.91px;
+}
+
+.welcome__action--favorite {
+  left: 219px;
+  top: 552.88px;
+}
+
+.welcome__action--favorite .welcome__action-label {
+  width: 94.58px;
+}
+
+.welcome__action--albums {
+  left: 68px;
+  top: 698.65px;
+}
+
+.welcome__action--albums .welcome__action-label {
+  width: 76px;
+}
+
+.welcome__action--download {
+  left: 218px;
+  top: 698.65px;
+}
+
+.welcome__action--download .welcome__action-label {
+  width: 88.45px;
+}
+
+.welcome__background,
+.welcome__texto-luna {
+  pointer-events: none;
+}

@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using Compartilhei.Api.Background;
 using Compartilhei.Api.ExceptionHandling;
 using Compartilhei.Api.Identity;
+using Compartilhei.Application.Abstractions.Compression;
 using Compartilhei.Application.Abstractions.Identity;
 using Compartilhei.Application.Abstractions.Persistence;
 using Compartilhei.Application.Abstractions.Processing;
@@ -13,10 +14,12 @@ using Compartilhei.Application.Events.GetEventBySlug;
 using Compartilhei.Application.Photos.ConfirmUpload;
 using Compartilhei.Application.Photos.Favorites;
 using Compartilhei.Application.Photos.Favorites.GetFavorites;
+using Compartilhei.Application.Photos.Favorites.DownloadFavorites;
 using Compartilhei.Application.Photos.Gallery;
 using Compartilhei.Application.Photos.Processing;
 using Compartilhei.Application.Photos.RequestUpload;
 using Compartilhei.Application.Photos.Validation;
+using Compartilhei.Infrastructure.Compression;
 using Compartilhei.Infrastructure.Configuration;
 using Compartilhei.Infrastructure.Images;
 using Compartilhei.Infrastructure.Images.Configuration;
@@ -31,6 +34,21 @@ using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://192.168.18.3:5173"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -99,10 +117,8 @@ builder.Services.AddSingleton(sp =>
     return new BlobServiceClient(options.ConnectionString);
 });
 
-builder.Services.AddSingleton<IPhotoProcessingQueue, InMemoryPhotoProcessingQueue>();
-
+builder.Services.AddSingleton<IPhotoProcessingQueue, InMemoryPhotoProcessingQueue>(); 
 builder.Services.AddScoped<IPhotoStorage, AzureBlobPhotoStorage>();
-
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
 builder.Services.AddScoped<IPhotoRepository, PhotoRepository>();
@@ -110,6 +126,10 @@ builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
 builder.Services.AddScoped<IGuestSessionAccessor, GuestSessionAccessor>();
 builder.Services.AddScoped<IPhotoFileStorage, AzureBlobPhotoFileStorage>();
 builder.Services.AddScoped<IPhotoProcessor, ImageSharpPhotoProcessor>();
+builder.Services.AddScoped<IPhotoStorage, AzureBlobPhotoStorage>();
+builder.Services.AddScoped<IPhotoFileStorage, AzureBlobPhotoFileStorage>();
+builder.Services.AddScoped<IPhotoProcessor, ImageSharpPhotoProcessor>();
+builder.Services.AddScoped<IZipArchiveService, ZipArchiveService>();
 builder.Services.AddScoped<RecoverPhotoProcessingHandler>();
 builder.Services.AddScoped<CreateEventHandler>();
 builder.Services.AddScoped<GetEventBySlugHandler>();
@@ -123,12 +143,16 @@ builder.Services.AddScoped<GetPhotoGalleryHandler>();
 builder.Services.AddScoped<FavoritePhotoHandler>();
 builder.Services.AddScoped<UnfavoritePhotoHandler>();
 builder.Services.AddScoped<GetFavoritesHandler>();
+builder.Services.AddScoped<DownloadFavoritesHandler>();
+
 
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+app.UseCors("Frontend");
 
 app.UseExceptionHandler();
 
@@ -143,3 +167,7 @@ app.MapControllers();
 
 app.MapHealthChecks("/health");
 app.Run();
+
+public partial class Program
+{
+}

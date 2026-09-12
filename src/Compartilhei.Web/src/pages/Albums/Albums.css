@@ -1,0 +1,254 @@
+.albums {
+  width: 390px;
+  height: 844px;
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  background: #ffe8b8;
+}
+
+/* =========================================
+   TOPO
+   ========================================= */
+
+.albums__top-image {
+  width: 390px;
+  height: 275.36px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  object-fit: cover;
+}
+
+.albums__white-background {
+  width: 390px;
+  height: 593.99px;
+  position: absolute;
+  left: 0;
+  top: 250px;
+}
+
+/* =========================================
+   TÍTULO
+   ========================================= */
+
+.albums__title {
+  width: 161.78px;
+  height: auto;
+  position: absolute;
+  left: 50%;
+  top: 109px;
+  transform: translateX(-50%);
+}
+
+/* =========================================
+   ITEM GENÉRICO
+   ========================================= */
+
+.album-item {
+  position: absolute;
+
+  left: 0;
+  width: 390px;
+  height: 100px;
+
+  padding: 0;
+  margin: 0;
+
+  border: 0;
+  background: transparent;
+
+  cursor: pointer;
+}
+
+/* =========================================
+   ÍCONE GENÉRICO
+   ========================================= */
+
+.album-item__icon {
+  position: absolute;
+
+  left: 36.42px;
+  top: 0;
+
+  width: 60.95px;
+  height: 61.82px;
+}
+
+.album-item__icon img {
+  position: absolute;
+}
+
+/* =========================================
+   RECEPÇÃO
+   ========================================= */
+
+.album-item--recepcao {
+  top: 358.31px;
+}
+
+.album-item--recepcao .album-item__icon img:first-child {
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+.album-item--recepcao .album-item__icon img:last-child {
+  width: 74.53%;
+  height: 72.69%;
+  left: 12.73%;
+  top: 13.71%;
+}
+
+.album-item__name--recepcao {
+  position: absolute;
+
+  left: 113.32px;
+  top: 8.7px;
+
+  width: 100.89px;
+  height: auto;
+}
+
+.album-item__description--recepcao {
+  position: absolute;
+
+  left: 113.32px;
+  top: 40.4px;
+
+  width: 246.84px;
+  height: auto;
+}
+
+/* =========================================
+   CERIMÔNIA
+   ========================================= */
+
+.album-item--cerimonia {
+  top: 462.32px;
+}
+
+.album-item__cerimonia {
+  position: absolute;
+
+  left: 36.42px;
+  top: 0;
+
+  width: auto;
+  height: auto;
+}
+
+/* =========================================
+   FESTA
+   ========================================= */
+
+.album-item--festa {
+  top: 566.22px;
+}
+
+.album-item--festa .album-item__icon img:first-child {
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+.album-item--festa .album-item__icon img:last-child {
+  width: 92.15%;
+  height: 75.35%;
+  left: 3.94%;
+  top: 12.38%;
+}
+
+.album-item__name--festa {
+  position: absolute;
+
+  left: 113.32px;
+  top: 9.8px;
+
+  width: 62.32px;
+  height: auto;
+}
+
+.album-item__description--festa {
+  position: absolute;
+
+  left: 113.32px;
+  top: 39.2px;
+
+  width: 205.8px;
+  height: auto;
+}
+
+/* =========================================
+   AFTER PARTY
+   ========================================= */
+
+.album-item--after-party {
+  top: 670.22px;
+}
+
+.album-item--after-party .album-item__icon img:first-child {
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+.album-item--after-party .album-item__icon img:last-child {
+  width: 71.49%;
+  height: 85.16%;
+  left: 14.29%;
+  top: 7.41%;
+}
+
+.album-item__name--after-party {
+  position: absolute;
+
+  left: 113.32px;
+  top: 9.6px;
+
+  width: 131.5px;
+  height: auto;
+}
+
+.album-item__description--after-party {
+  position: absolute;
+
+  left: 113.32px;
+  top: 41.9px;
+
+  width: 199.32px;
+  height: auto;
+}
+
+/* =========================================
+   BOTÃO INÍCIO
+   ========================================= */
+
+.albums__home-button {
+  width: 43px;
+  height: 44px;
+
+  position: absolute;
+
+  left: 24px;
+  top: 24px;
+
+  z-index: 20;
+
+  cursor: pointer;
+}
+
+.albums__home-button img {
+  width: 100%;
+  height: 100%;
+}
+
+/* =========================================
+   DESKTOP
+   ========================================= */
+
+@media (min-width: 391px) {
+  .albums {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  }
+}
