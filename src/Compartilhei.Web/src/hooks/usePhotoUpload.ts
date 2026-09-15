@@ -21,6 +21,24 @@ export type UploadPhotoItem = {
   photoId?: string;
 };
 
+function createPhotoId(): string {
+  // Tenta usar randomUUID quando disponível.
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return crypto.randomUUID();
+  }
+
+  // Fallback para ambientes móveis/navegadores
+  // que não disponibilizam crypto.randomUUID().
+  return `${Date.now()}-${Math.random()
+    .toString(16)
+    .slice(2)}-${Math.random()
+    .toString(16)
+    .slice(2)}`;
+}
+
 export function usePhotoUpload() {
   const [photos, setPhotos] = useState<
     UploadPhotoItem[]
@@ -32,7 +50,7 @@ export function usePhotoUpload() {
 
       const newPhotos: UploadPhotoItem[] =
         selectedFiles.map((file) => ({
-          id: crypto.randomUUID(),
+          id: createPhotoId(),
           file,
           previewUrl:
             URL.createObjectURL(file),

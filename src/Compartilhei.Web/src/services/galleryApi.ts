@@ -31,13 +31,13 @@ export async function getPhotoGallery(
   if (cursor) {
     params.set("cursor", cursor);
   }
-  console.log("API BASE URL:", API_BASE_URL);
-  console.log("BUSCANDO GALERIA:", {
-    eventSlug,
-    albumId,
-    cursor,
-    limit,
-  });
+  // console.log("API BASE URL:", API_BASE_URL);
+  // console.log("BUSCANDO GALERIA:", {
+  //   eventSlug,
+  //   albumId,
+  //   cursor,
+  //   limit,
+  // });
 
   const response = await fetch(
     `${API_BASE_URL}/api/events/${encodeURIComponent(

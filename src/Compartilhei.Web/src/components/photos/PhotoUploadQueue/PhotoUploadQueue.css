@@ -3,6 +3,8 @@
   inset: 0;
   z-index: 1100;
 
+  font-family: "Segoe UI", sans-serif;
+
   display: flex;
   flex-direction: column;
 
@@ -18,8 +20,9 @@
 
   color: var(--color-primary);
 
-  font-family: var(--font-handwritten);
+  font-family: "Segoe UI", sans-serif;
   font-size: 30px;
+
   text-align: center;
 }
 
@@ -104,8 +107,9 @@
 
   color: var(--color-primary);
 
-  font-family: var(--font-handwritten);
+  font-family: "Segoe UI", sans-serif;
   font-size: 21px;
+
   text-align: center;
 }
 
@@ -120,7 +124,7 @@
   background: var(--color-primary);
   color: white;
 
-  font-family: var(--font-handwritten);
+  font-family: "Segoe UI", sans-serif;
   font-size: 22px;
 
   cursor: pointer;

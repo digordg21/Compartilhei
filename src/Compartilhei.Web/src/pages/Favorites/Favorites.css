@@ -1,23 +1,22 @@
-.gallery {
+/* =========================================================
+   FAVORITES
+   ========================================================= */
+
+.favorites {
   width: 390px;
   min-height: 100vh;
-
   position: relative;
-
   margin: 0 auto;
-
   overflow-x: hidden;
-  overflow-y: visible;
-
   background: #ffe8b8;
 }
 
 
 /* =========================================================
-   TOPO
+   CAPA
    ========================================================= */
 
-.gallery__hero {
+.favorites__hero {
   width: 390px;
   height: 275.36px;
 
@@ -28,7 +27,7 @@
   z-index: 1;
 }
 
-.gallery__hero-image {
+.favorites__hero-image {
   width: 390px;
   height: 275.36px;
 
@@ -38,32 +37,9 @@
   top: 0;
 
   object-fit: cover;
-}
+  object-position: center center;
 
-
-/* =========================================================
-   NOME DO ÁLBUM
-   ========================================================= */
-
-.gallery__album-name {
-  position: absolute;
-
-  /*
-   * POSIÇÃO PROVISÓRIA.
-   *
-   * Depois podemos ajustar com base no asset exato
-   * do Figma para que "Festa" fique exatamente no
-   * mesmo ponto do seu modelo.
-   */
-  left: 50%;
-  top: 190px;
-
-  transform: translateX(-50%);
-
-  width: 62.32px;
-  height: auto;
-
-  z-index: 5;
+  display: block;
 }
 
 
@@ -71,7 +47,7 @@
    FUNDO BRANCO
    ========================================================= */
 
-.gallery__background {
+.favorites__background {
   width: 390px;
   height: 593.99px;
 
@@ -87,10 +63,10 @@
 
 
 /* =========================================================
-   HOME
+   BOTÃO INÍCIO
    ========================================================= */
 
-.gallery__home {
+.favorites__home {
   width: 43px;
   height: 44px;
 
@@ -110,24 +86,26 @@
   cursor: pointer;
 }
 
-.gallery__home img {
+.favorites__home img {
   width: 100%;
   height: 100%;
+
+  display: block;
 }
 
 
 /* =========================================================
-   VOLTAR
+   BOTÃO VOLTAR
    ========================================================= */
 
-.gallery__back {
+.favorites__back {
+  width: 25px;
+  height: 26px;
+
   position: absolute;
 
   right: 28px;
   top: 29px;
-
-  width: 25px;
-  height: 26px;
 
   padding: 0;
 
@@ -140,9 +118,11 @@
   cursor: pointer;
 }
 
-.gallery__back img {
+.favorites__back img {
   width: 100%;
   height: 100%;
+
+  display: block;
 
   object-fit: contain;
 }
@@ -152,39 +132,62 @@
    TÍTULO
    ========================================================= */
 
-.gallery__title {
+.favorites__title {
   position: absolute;
 
-  top: 285px;
-  left: 50%;
+  z-index: 5;
 
-  width: 53px;
-  height: 25px;
+  left: 50%;
+  top: 109px;
 
   transform: translateX(-50%);
 
-  object-fit: contain;
+  width: auto;
+  height: auto;
 
-  z-index: 10;
+  display: block;
 }
-
 
 
 /* =========================================================
    GRID
    ========================================================= */
 
-.gallery__grid {
+.favorites__grid {
   position: relative;
+
   z-index: 10;
+
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
   column-gap: 8px;
   row-gap: 10px;
+
   width: calc(100% - 32px);
+
   margin: 0 auto;
+
+  /*
+   * Mantém a mesma composição visual
+   * que você acertou na Gallery.
+   */
   padding-top: 60px;
+
   padding-bottom: 40px;
+}
+
+
+/* =========================================================
+   CARD DA FOTO
+   ========================================================= */
+
+.favorites__photo-wrapper {
+  width: 100%;
+
+  position: relative;
 }
 
 
@@ -192,14 +195,7 @@
    FOTO
    ========================================================= */
 
-.gallery__photo-wrapper {
-  width: 100%;
-
-  position: relative;
-}
-
-
-.gallery__photo {
+.favorites__photo {
   width: 100%;
 
   aspect-ratio: 3 / 4;
@@ -222,12 +218,11 @@
     0 2px 4px rgba(0, 0, 0, 0.20);
 }
 
-
-.gallery__photo img {
-  display: block;
-
+.favorites__photo img {
   width: 100%;
   height: 100%;
+
+  display: block;
 
   object-fit: cover;
 }
@@ -237,72 +232,99 @@
    FAVORITO
    ========================================================= */
 
-.gallery__favorite {
+.favorites__favorite {
   position: absolute;
+
   right: 4px;
   bottom: 10px;
+
   width: 32px;
   height: 32px;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
   padding: 0;
+
   border: 0;
+
   border-radius: 50%;
 
-  background: rgba(255, 255, 255, 0.90);
+  background:
+    rgba(255, 255, 255, 0.90);
 
   cursor: pointer;
+
   z-index: 5;
 }
 
-.gallery__favorite-icon {
+.favorites__favorite-icon {
   width: 20px;
   height: 20px;
+
   display: block;
-  opacity: 0.2;
+
+  opacity: 0.75;
 }
 
-.gallery__favorite--active .gallery__favorite-icon {
+.favorites__favorite--active
+.favorites__favorite-icon {
   opacity: 1;
 }
 
-.gallery__favorite:disabled {
-  opacity: 0.8;
+.favorites__favorite--loading {
+  cursor: wait;
+}
+
+.favorites__favorite--loading
+.favorites__favorite-icon {
+  opacity: 0.5;
+}
+
+.favorites__favorite:disabled {
   cursor: wait;
 }
 
 
 /* =========================================================
-   PAGINAÇÃO
+   ESTADOS
    ========================================================= */
 
-.gallery__load-more {
+.favorites__state {
   position: relative;
 
-  width: 100%;
+  z-index: 30;
 
-  height: 32px;
+  display: flex;
 
-  z-index: 10;
+  align-items: center;
+  justify-content: center;
 
-  text-align: center;
+  min-height: 300px;
+
+  padding: 32px;
 
   color: var(--color-primary);
 
   font-family: var(--font-handwritten);
 
-  font-size: 18px;
+  font-size: 24px;
+
+  text-align: center;
+}
+
+.favorites__state--error {
+  color: #8a3333;
 }
 
 
 /* =========================================================
-   EMPTY
+   VAZIO
    ========================================================= */
 
-.gallery__empty {
+.favorites__empty {
   position: relative;
 
   z-index: 10;
@@ -323,132 +345,23 @@
 
 
 /* =========================================================
-   LOADING / ERROR
+   RESPONSIVIDADE
    ========================================================= */
 
-.gallery__state {
-  position: relative;
+@media (max-width: 390px) {
 
-  z-index: 30;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  min-height: 844px;
-
-  padding: 32px;
-
-  color: var(--color-primary);
-
-  font-family: var(--font-handwritten);
-
-  font-size: 24px;
-
-  text-align: center;
-}
-
-.gallery__state--error {
-  color: #8a3333;
-}
-
-
-/* =========================================================
-   FULLSCREEN
-   ========================================================= */
-
-.gallery__viewer {
-  position: fixed;
-
-  inset: 0;
-
-  z-index: 100;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  padding: 20px;
-
-  background: rgba(
-    0,
-    0,
-    0,
-    0.92
-  );
-}
-
-
-.gallery__viewer-image {
-  max-width: 100%;
-  max-height: 100%;
-
-  object-fit: contain;
-}
-
-
-.gallery__viewer-close {
-  position: absolute;
-
-  top: 16px;
-  right: 16px;
-
-  width: 44px;
-  height: 44px;
-
-  padding: 0;
-
-  color: white;
-
-  font-size: 36px;
-
-  line-height: 1;
-
-  cursor: pointer;
-
-  z-index: 101;
-}
-
-
-/* =========================================================
-   DESKTOP
-   ========================================================= */
-
-@media (min-width: 391px) {
-  .gallery {
-    box-shadow:
-      0 0 20px
-      rgba(0, 0, 0, 0.15);
+  .favorites {
+    width: 100%;
   }
-}
 
-.gallery__album-title {
-  position: absolute;
+  .favorites__hero,
+  .favorites__hero-image,
+  .favorites__background {
+    width: 100%;
+  }
 
-  z-index: 5;
+  .favorites__grid {
+    width: calc(100% - 32px);
+  }
 
-  left: 50%;
-  top: 109px;
-
-  transform: translateX(-50%);
-
-  width: auto;
-  height: auto;
-
-  display: block;
-}
-
-.gallery__hero-image {
-  width: 390px;
-  height: 275.36px;
-
-  position: absolute;
-
-  left: 0;
-  top: 0;
-
-  object-fit: cover;
-  object-position: center center;
 }

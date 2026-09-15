@@ -11,9 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Json;
-using Azure.Storage.Blobs;
-using Compartilhei.Infrastructure.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Compartilhei.IntegrationTests.Photos;
 
