@@ -9,6 +9,7 @@ using Compartilhei.Application.Photos.Favorites.DownloadFavorites;
 using Compartilhei.Application.Photos.Gallery;
 using Compartilhei.Application.Photos.RequestUpload;
 using Compartilhei.Application.Photos.ConfirmUpload;
+using Compartilhei.Application.Photos.DownloadPhoto;
 
 
 using Microsoft.AspNetCore.Mvc;
@@ -183,6 +184,27 @@ public sealed class PhotosController : ControllerBase
             new DownloadFavoritesQuery(
                 eventSlug,
                 albumId),
+            cancellationToken);
+
+        return File(
+            result.Content,
+            result.ContentType,
+            result.FileName);
+    }
+
+    [HttpGet("{photoId:guid}/download")]
+    public async Task<IActionResult> DownloadPhoto(
+    string eventSlug,
+    Guid albumId,
+    Guid photoId,
+    [FromServices] DownloadPhotoHandler handler,
+    CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(
+            new DownloadPhotoQuery(
+                eventSlug,
+                albumId,
+                photoId),
             cancellationToken);
 
         return File(

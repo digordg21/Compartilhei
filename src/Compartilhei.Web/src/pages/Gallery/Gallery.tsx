@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
+import { PhotoUploadFlow } from "../../components/photos/PhotoUploadFlow/PhotoUploadFlow";
 
 import "./Gallery.css";
 
@@ -202,88 +204,49 @@ export default function Gallery() {
   const [favoriteLoadingId, setFavoriteLoadingId] =
     useState<string | null>(null);
 
-
-  /*
-   * ==========================================================
-   * CARREGAMENTO INICIAL
-   * ==========================================================
-   */
-
-  useEffect(() => {
-
-    if (!eventSlug || !albumId) {
-
-      setError("Álbum não informado.");
-
-      setLoading(false);
-
-      return;
-    }
+  const [isPhotoUploadOpen, setIsPhotoUploadOpen] =
+    useState(false);
 
 
-    let cancelled = false;
+/*
+ * ==========================================================
+ * CARREGAMENTO DA GALERIA
+ * ==========================================================
+ */
 
+const loadGallery = useCallback(async () => {
+  if (!eventSlug || !albumId) {
+    setError("Álbum não informado.");
+    setLoading(false);
+    return;
+  }
 
-    async function loadGallery() {
+  try {
+    setLoading(true);
+    setError(null);
 
-      try {
+    const result = await getPhotoGallery(
+      eventSlug,
+      albumId,
+    );
 
-        setLoading(true);
+    setPhotos(result.items);
+    setNextCursor(result.nextCursor);
+    setHasMore(result.hasMore);
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Não foi possível carregar a galeria.",
+    );
+  } finally {
+    setLoading(false);
+  }
+}, [eventSlug, albumId]);
 
-        setError(null);
-
-
-        const result =
-          await getPhotoGallery(
-            eventSlug!,
-            albumId!,
-          );
-
-
-        if (cancelled) {
-          return;
-        }
-
-
-        setPhotos(result.items);
-
-        setNextCursor(result.nextCursor);
-
-        setHasMore(result.hasMore);
-
-      } catch (err) {
-
-        if (cancelled) {
-          return;
-        }
-
-
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Não foi possível carregar a galeria.",
-        );
-
-      } finally {
-
-        if (!cancelled) {
-          setLoading(false);
-        }
-
-      }
-    }
-
-
-    void loadGallery();
-
-
-    return () => {
-
-      cancelled = true;
-
-    };
-
-  }, [eventSlug, albumId]);
+useEffect(() => {
+  void loadGallery();
+}, [loadGallery]);
 
 
   /*
@@ -461,6 +424,74 @@ export default function Gallery() {
 
     setSelectedPhoto(null);
 
+  };
+
+  const downloadPhoto = async (photo: PhotoGalleryItem) => {
+    if (!eventSlug || !albumId) {
+      return;
+    }
+
+    try {
+      const API_BASE_URL =
+        import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5290";
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/events/${encodeURIComponent(
+          eventSlug,
+        )}/albums/${albumId}/photos/${photo.id}/download`,
+        {
+          credentials: "include",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Não foi possível baixar a foto (${response.status}).`,
+        );
+      }
+
+      const blob = await response.blob();
+
+      const file = new File(
+        [blob],
+        photo.fileName,
+        {
+          type: blob.type || "image/jpeg",
+        },
+      );
+
+      if (
+        navigator.canShare &&
+        navigator.canShare({ files: [file] })
+      ) {
+        await navigator.share({
+          files: [file],
+        });
+
+        return;
+      }
+
+      // Fallback para navegadores que não suportam compartilhamento de arquivos.
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = photo.fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      if (
+        error instanceof DOMException &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+
+      console.error("Erro ao compartilhar/baixar foto:", error);
+    }
   };
 
 
@@ -689,6 +720,15 @@ export default function Gallery() {
 
       </button>
 
+      <button
+        type="button"
+        className="gallery__camera"
+        onClick={() => setIsPhotoUploadOpen(true)}
+        aria-label="Adicionar fotos"
+      >
+        📷
+      </button>
+
 
       {/* ======================================================
           TÍTULO FOTOS
@@ -858,6 +898,18 @@ export default function Gallery() {
             ×
           </button>
 
+          <button
+            type="button"
+            className="gallery__viewer-download"
+            onClick={(event) => {
+              event.stopPropagation();
+              void downloadPhoto(selectedPhoto);
+            }}
+            aria-label="Baixar foto"
+          >
+            ↓
+          </button>
+
 
           <img
             src={selectedPhoto.displayUrl}
@@ -871,7 +923,18 @@ export default function Gallery() {
         </div>
 
       )}
-
+      {eventSlug && albumId && (
+        <PhotoUploadFlow
+          eventSlug={eventSlug}
+          albumId={albumId}
+          open={isPhotoUploadOpen}
+          onClose={() => setIsPhotoUploadOpen(false)}
+          onSuccess={() => {
+            setIsPhotoUploadOpen(false);
+            void loadGallery();
+          }}
+        />
+      )}
     </main>
 
   );

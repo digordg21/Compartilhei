@@ -12,9 +12,10 @@ using Compartilhei.Application.Events.CreateEvent;
 using Compartilhei.Application.Events.GetEventAlbums;
 using Compartilhei.Application.Events.GetEventBySlug;
 using Compartilhei.Application.Photos.ConfirmUpload;
+using Compartilhei.Application.Photos.DownloadPhoto;
 using Compartilhei.Application.Photos.Favorites;
-using Compartilhei.Application.Photos.Favorites.GetFavorites;
 using Compartilhei.Application.Photos.Favorites.DownloadFavorites;
+using Compartilhei.Application.Photos.Favorites.GetFavorites;
 using Compartilhei.Application.Photos.Gallery;
 using Compartilhei.Application.Photos.Processing;
 using Compartilhei.Application.Photos.RequestUpload;
@@ -144,6 +145,7 @@ builder.Services.AddScoped<FavoritePhotoHandler>();
 builder.Services.AddScoped<UnfavoritePhotoHandler>();
 builder.Services.AddScoped<GetFavoritesHandler>();
 builder.Services.AddScoped<DownloadFavoritesHandler>();
+builder.Services.AddScoped<DownloadPhotoHandler>();
 
 
 

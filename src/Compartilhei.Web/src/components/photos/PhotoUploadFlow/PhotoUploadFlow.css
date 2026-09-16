@@ -1,0 +1,168 @@
+.photo-upload-flow__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(35, 28, 32, 0.45);
+}
+
+.photo-upload-flow__album-modal {
+  position: relative;
+
+  width: min(390px, 100%);
+  max-height: 90vh;
+
+  padding: 30px 20px 24px;
+
+  overflow-y: auto;
+
+  border-radius: 28px;
+
+  background: var(--color-surface);
+
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.18);
+
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* botão fechar */
+
+.photo-upload-flow__close {
+  position: absolute;
+
+  top: 12px;
+  right: 16px;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #f8f3ec;
+
+  color: var(--color-secondary);
+
+  font-family: "Segoe UI", sans-serif;
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.photo-upload-flow__close:hover {
+  background: #f1e8dc;
+}
+
+.photo-upload-flow__close:active {
+  transform: scale(0.94);
+}
+
+/* título */
+
+.photo-upload-flow__title {
+  margin: 14px 30px 26px;
+
+  color: #734949;
+
+  font-family: "Segoe UI", sans-serif;
+  font-size: 28px;
+  line-height: 1.15;
+
+  text-align: center;
+}
+
+/* lista */
+
+.photo-upload-flow__albums {
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+/* card do álbum */
+
+.photo-upload-flow__album {
+  width: 100%;
+  min-height: 62px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 14px 18px;
+
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 18px;
+
+  background: var(--color-primary);
+
+  color: #f8f3ec;
+
+  font-family: "Segoe UI", sans-serif;
+  font-size: 22px;
+  font-weight: 400;
+
+  text-align: center;
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.05);
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.photo-upload-flow__album:hover {
+  background: #f4ecdf;
+
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.photo-upload-flow__album:active {
+  transform: scale(0.98);
+}
+
+/* mensagens */
+
+.photo-upload-flow__message {
+  margin: 12px 0;
+
+  color: var(--color-secondary);
+
+  font-family: "Segoe UI", sans-serif;
+  font-size: 15px;
+
+  text-align: center;
+}
+
+.photo-upload-flow__error {
+  margin: 12px 0;
+
+  color: #b42318;
+
+  font-family: "Segoe UI", sans-serif;
+  font-size: 15px;
+
+  text-align: center;
+}
