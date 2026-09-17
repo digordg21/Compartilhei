@@ -91,4 +91,21 @@ public sealed class FakeFavoriteRepository : IFavoriteRepository
 
         return Task.FromResult<IReadOnlyList<Guid>>(photoIds);
     }
+
+    public Task<IReadOnlyList<Guid>>
+    GetPhotoIdsByEventAndGuestSessionAsync(
+        Guid eventId,
+        Guid guestSessionId,
+        CancellationToken cancellationToken)
+    {
+        var photoIds = _favorites
+            .Where(favorite =>
+                favorite.GuestSessionId == guestSessionId)
+            .Select(favorite => favorite.PhotoId)
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<Guid>>(photoIds);
+
+    }
+
 }

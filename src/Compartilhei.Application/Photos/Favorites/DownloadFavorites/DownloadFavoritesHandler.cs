@@ -11,7 +11,6 @@ public sealed class DownloadFavoritesHandler
     private const int MaxFavoritePhotos = 200;
 
     private readonly IEventRepository _eventRepository;
-    private readonly IAlbumRepository _albumRepository;
     private readonly IFavoriteRepository _favoriteRepository;
     private readonly IPhotoRepository _photoRepository;
     private readonly IPhotoFileStorage _photoFileStorage;
@@ -28,7 +27,6 @@ public sealed class DownloadFavoritesHandler
         IGuestSessionAccessor guestSessionAccessor)
     {
         _eventRepository = eventRepository;
-        _albumRepository = albumRepository;
         _favoriteRepository = favoriteRepository;
         _photoRepository = photoRepository;
         _photoFileStorage = photoFileStorage;
@@ -49,21 +47,13 @@ public sealed class DownloadFavoritesHandler
             throw new NotFoundException("Event not found.");
         }
 
-        var album = await _albumRepository.GetActiveByIdAsync(
-            query.AlbumId,
-            cancellationToken);
-
-        if (album is null || album.EventId != eventEntity.Id)
-        {
-            throw new NotFoundException("Album not found.");
-        }
 
         var guestSessionId = _guestSessionAccessor.GuestSessionId;
 
         var photoIds =
             await _favoriteRepository
-                .GetPhotoIdsByAlbumAndGuestSessionAsync(
-                    album.Id,
+                .GetPhotoIdsByEventAndGuestSessionAsync(
+                    eventEntity.Id,
                     guestSessionId,
                     cancellationToken);
 

@@ -89,3 +89,25 @@ export async function getFavorites(
 
   return response.json();
 }
+
+export async function downloadFavorites(
+  eventSlug: string,
+): Promise<Blob> {
+  const url =
+    `${API_BASE_URL}/api/events/${encodeURIComponent(
+      eventSlug,
+    )}/favorites/download`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Não foi possível baixar os favoritos (${response.status}).`,
+    );
+  }
+
+  return response.blob();
+}

@@ -118,7 +118,7 @@
   width: 100%;
   min-height: 52px;
 
-  margin-top: auto;
+  margin-top: 0;
 
   border-radius: 14px;
 
@@ -229,5 +229,28 @@
 .photo-upload-queue__upload:disabled {
   opacity: 0.6;
 
+  cursor: wait;
+}
+
+.photo-upload-queue__camera {
+  width: 100%;
+  min-height: 52px;
+
+  margin-bottom: 10px;
+
+  border: 1px solid var(--color-primary);
+  border-radius: 14px;
+
+  background: transparent;
+  color: var(--color-primary);
+
+  font-family: "Segoe UI", sans-serif;
+  font-size: 20px;
+
+  cursor: pointer;
+}
+
+.photo-upload-queue__camera:disabled {
+  opacity: 0.6;
   cursor: wait;
 }

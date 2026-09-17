@@ -224,11 +224,81 @@ export function PhotoUploadFlow({
     }, 1500);
   };
 
+  const handleRetry = async (id: string) => {
+    const photo = photos.find((item) => item.id === id);
+
+    if (!photo || !selectedAlbumId) {
+      return;
+    }
+
+    try {
+      updatePhoto(photo.id, {
+        status: "Uploading",
+        progress: 0,
+        error: undefined,
+      });
+
+      const authorization = await requestPhotoUpload(
+        eventSlug,
+        selectedAlbumId,
+        photo.file,
+      );
+
+      updatePhoto(photo.id, {
+        photoId: authorization.photoId,
+      });
+
+      await uploadPhotoToBlob(
+        authorization.uploadUrl,
+        photo.file,
+        (progress) => {
+          updatePhoto(photo.id, {
+            progress,
+          });
+        },
+      );
+
+      updatePhoto(photo.id, {
+        status: "Uploaded",
+        progress: 100,
+      });
+
+      const confirmation = await confirmPhotoUpload(
+        eventSlug,
+        selectedAlbumId,
+        authorization.photoId,
+      );
+
+      updatePhoto(photo.id, {
+        status:
+          confirmation.status === "Uploaded"
+            ? "Processing"
+            : "Uploaded",
+      });
+    } catch (error) {
+      updatePhoto(photo.id, {
+        status: "Failed",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Erro desconhecido.",
+      });
+    }
+  };
+
   const handleClose = () => {
     setIsPhotoSourceOpen(false);
     setIsPhotoQueueOpen(false);
     setSelectedAlbumId(albumId ?? null);
     onClose();
+  };
+
+  const handleRemoveFile = (id: string) => {
+    removeFile(id);
+
+    if (photos.length === 1) {
+      handleClose();
+    }
   };
 
   if (!open) {
@@ -311,8 +381,10 @@ export function PhotoUploadFlow({
       {isPhotoQueueOpen && (
         <PhotoUploadQueue
           photos={photos}
-          onRemove={removeFile}
+          onRemove={handleRemoveFile}
           onUpload={handleUpload}
+          onRetry={handleRetry}
+          onTakePhoto={handleCamera}
         />
       )}
     </>

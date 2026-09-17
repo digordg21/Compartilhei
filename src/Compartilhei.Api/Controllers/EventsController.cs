@@ -2,6 +2,7 @@
 using Compartilhei.Application.Events.CreateEvent;
 using Compartilhei.Application.Events.GetEventAlbums;
 using Compartilhei.Application.Events.GetEventBySlug;
+using Compartilhei.Application.Photos.Favorites.DownloadFavorites;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Compartilhei.Api.Controllers;
@@ -89,6 +90,23 @@ public sealed class EventsController : ControllerBase
             cancellationToken);
 
         return Ok(result);
+    }
+
+    [HttpGet("{slug}/favorites/download")]
+    public async Task<IActionResult> DownloadFavorites(
+        string slug,
+        [FromServices] DownloadFavoritesHandler handler,
+        CancellationToken cancellationToken)
+    {
+        var result = await handler.HandleAsync(
+            new DownloadFavoritesQuery(
+                slug),
+            cancellationToken);
+
+        return File(
+            result.Content,
+            result.ContentType,
+            result.FileName);
     }
 }
 

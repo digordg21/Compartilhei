@@ -37,8 +37,7 @@ public class DownloadFavoritesHandlerTests
         var exception = await Assert.ThrowsAsync<BusinessRuleException>(
             () => handler.HandleAsync(
                 new DownloadFavoritesQuery(
-                    eventEntity.Slug,
-                    album.Id),
+                    eventEntity.Slug),
                 CancellationToken.None));
 
         Assert.Equal(
@@ -103,8 +102,7 @@ public class DownloadFavoritesHandlerTests
 
         var result = await handler.HandleAsync(
             new DownloadFavoritesQuery(
-                eventEntity.Slug,
-                album.Id),
+                eventEntity.Slug),
             CancellationToken.None);
 
         Assert.Equal(
@@ -173,8 +171,7 @@ public class DownloadFavoritesHandlerTests
         var exception = await Assert.ThrowsAsync<BusinessRuleException>(
             () => handler.HandleAsync(
                 new DownloadFavoritesQuery(
-                    eventEntity.Slug,
-                    album.Id),
+                    eventEntity.Slug),
                 CancellationToken.None));
 
         Assert.Equal(
@@ -255,8 +252,7 @@ public class DownloadFavoritesHandlerTests
 
         var result = await handler.HandleAsync(
             new DownloadFavoritesQuery(
-                eventEntity.Slug,
-                album.Id),
+                eventEntity.Slug),
             CancellationToken.None);
 
         var fileNames = zipService.Entries

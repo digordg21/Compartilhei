@@ -32,6 +32,11 @@ public interface IFavoriteRepository
         Guid albumId,
         Guid guestSessionId,
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Guid>> GetPhotoIdsByEventAndGuestSessionAsync(
+      Guid eventId,
+      Guid guestSessionId,
+      CancellationToken cancellationToken);
 }
 
 

@@ -5,6 +5,8 @@ type PhotoUploadQueueProps = {
   photos: UploadPhotoItem[];
   onRemove: (id: string) => void;
   onUpload: () => void;
+  onRetry: (id: string) => void;
+  onTakePhoto: () => void;
   isUploading?: boolean;
 };
 
@@ -40,6 +42,8 @@ export function PhotoUploadQueue({
   photos,
   onRemove,
   onUpload,
+  onRetry,
+  onTakePhoto,
   isUploading = false,
 }: PhotoUploadQueueProps) {
   if (photos.length === 0) {
@@ -87,6 +91,20 @@ export function PhotoUploadQueue({
               <span className="photo-upload-queue__size">
                 {formatFileSize(photo.file.size)}
               </span>
+
+              {photo.status === "Failed" && (
+                <div className="photo-upload-queue__error">
+                  <span>{photo.error}</span>
+
+                  <button
+                    type="button"
+                    className="photo-upload-queue__retry"
+                    onClick={() => onRetry(photo.id)}
+                  >
+                    Tentar novamente
+                  </button>
+                </div>
+              )}
 
               <span
                 className={`photo-upload-queue__status photo-upload-queue__status--${photo.status.toLowerCase()}`}
@@ -141,6 +159,15 @@ export function PhotoUploadQueue({
           Fotos enviadas com sucesso!
         </div>
       )}
+
+      <button
+        type="button"
+        className="photo-upload-queue__camera"
+        onClick={onTakePhoto}
+        disabled={isUploading}
+      >
+        Tirar nova foto
+      </button>
 
       <button
         type="button"

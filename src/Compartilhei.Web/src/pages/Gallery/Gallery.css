@@ -1,3 +1,7 @@
+/* =========================================================
+   GALLERY
+   ========================================================= */
+
 .gallery {
   width: 390px;
   min-height: 100vh;
@@ -38,6 +42,9 @@
   top: 0;
 
   object-fit: cover;
+  object-position: center center;
+
+  display: block;
 }
 
 
@@ -45,25 +52,20 @@
    NOME DO ÁLBUM
    ========================================================= */
 
-.gallery__album-name {
+.gallery__album-title {
   position: absolute;
 
-  /*
-   * POSIÇÃO PROVISÓRIA.
-   *
-   * Depois podemos ajustar com base no asset exato
-   * do Figma para que "Festa" fique exatamente no
-   * mesmo ponto do seu modelo.
-   */
+  z-index: 5;
+
   left: 50%;
-  top: 190px;
+  top: 109px;
 
   transform: translateX(-50%);
 
-  width: 62.32px;
+  width: auto;
   height: auto;
 
-  z-index: 5;
+  display: block;
 }
 
 
@@ -113,6 +115,8 @@
 .gallery__home img {
   width: 100%;
   height: 100%;
+
+  display: block;
 }
 
 
@@ -144,6 +148,8 @@
   width: 100%;
   height: 100%;
 
+  display: block;
+
   object-fit: contain;
 }
 
@@ -169,20 +175,27 @@
 }
 
 
-
 /* =========================================================
    GRID
    ========================================================= */
 
 .gallery__grid {
   position: relative;
+
   z-index: 10;
+
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
   column-gap: 8px;
   row-gap: 10px;
+
   width: calc(100% - 32px);
+
   margin: 0 auto;
+
   padding-top: 60px;
   padding-bottom: 40px;
 }
@@ -197,7 +210,6 @@
 
   position: relative;
 }
-
 
 .gallery__photo {
   width: 100%;
@@ -222,7 +234,6 @@
     0 2px 4px rgba(0, 0, 0, 0.20);
 }
 
-
 .gallery__photo img {
   display: block;
 
@@ -239,38 +250,48 @@
 
 .gallery__favorite {
   position: absolute;
+
   right: 4px;
   bottom: 10px;
+
   width: 32px;
   height: 32px;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
   padding: 0;
+
   border: 0;
   border-radius: 50%;
 
-  background: rgba(255, 255, 255, 0.90);
+  background:
+    rgba(255, 255, 255, 0.90);
 
   cursor: pointer;
+
   z-index: 5;
 }
 
 .gallery__favorite-icon {
   width: 20px;
   height: 20px;
+
   display: block;
+
   opacity: 0.2;
 }
 
-.gallery__favorite--active .gallery__favorite-icon {
+.gallery__favorite--active
+.gallery__favorite-icon {
   opacity: 1;
 }
 
 .gallery__favorite:disabled {
   opacity: 0.8;
+
   cursor: wait;
 }
 
@@ -283,7 +304,6 @@
   position: relative;
 
   width: 100%;
-
   height: 32px;
 
   z-index: 10;
@@ -292,7 +312,7 @@
 
   color: var(--color-primary);
 
-  font-family: var(--font-handwritten);
+  font-family: 'Segoe UI', sans-serif;
 
   font-size: 18px;
 }
@@ -314,7 +334,7 @@
 
   color: var(--color-primary);
 
-  font-family: var(--font-handwritten);
+  font-family: 'Segoe UI', sans-serif;
 
   font-size: 24px;
 
@@ -342,7 +362,7 @@
 
   color: var(--color-primary);
 
-  font-family: var(--font-handwritten);
+  font-family: 'Segoe UI', sans-serif;
 
   font-size: 24px;
 
@@ -355,6 +375,70 @@
 
 
 /* =========================================================
+   CÂMERA / UPLOAD
+   ========================================================= */
+
+.gallery__camera {
+  position: fixed;
+
+  right: 20px;
+  bottom: 20px;
+
+  width: 62px;
+  height: 62px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: #DAA092;
+  color: white;
+
+  font-size: 26px;
+  line-height: 1;
+
+  box-shadow:
+    0 4px 14px
+    rgba(0, 0, 0, 0.22);
+
+  cursor: pointer;
+
+  z-index: 50;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.gallery__camera:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 6px 18px
+    rgba(0, 0, 0, 0.25);
+}
+
+.gallery__camera:active {
+  transform: scale(0.94);
+}
+
+.gallery__camera img {
+  width: 52px;
+  height: 52px;
+
+  display: block;
+
+  object-fit: contain;
+}
+
+
+/* =========================================================
    FULLSCREEN
    ========================================================= */
 
@@ -363,7 +447,7 @@
 
   inset: 0;
 
-  z-index: 100;
+  z-index: 1000;
 
   display: flex;
 
@@ -371,6 +455,8 @@
   justify-content: center;
 
   padding: 20px;
+
+  box-sizing: border-box;
 
   background: rgba(
     0,
@@ -381,13 +467,72 @@
 }
 
 
+/* =========================================================
+   FOTO FULLSCREEN
+   ========================================================= */
+
 .gallery__viewer-image {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: calc(100% - 100px);
+  max-height: calc(100% - 80px);
+
+  width: auto;
+  height: auto;
 
   object-fit: contain;
+
+  display: block;
 }
 
+
+/* =========================================================
+   BOTÃO DOWNLOAD
+   ========================================================= */
+
+.gallery__viewer-download {
+  position: absolute;
+
+  top: 16px;
+  right: 70px;
+
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  z-index: 1002;
+}
+
+.gallery__viewer-download-icon {
+  transform: scale(0.9);
+  position: absolute;
+
+  top: 9px;
+
+  width: 44px;
+  height: 44px;
+
+  display: block;
+
+  object-fit: contain;
+
+  border-radius: 10px;
+}
+
+
+/* =========================================================
+   FECHAR
+   ========================================================= */
 
 .gallery__viewer-close {
   position: absolute;
@@ -395,20 +540,78 @@
   top: 16px;
   right: 16px;
 
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
 
   padding: 0;
 
+  border: 0;
+
+  background: transparent;
+
   color: white;
 
-  font-size: 36px;
+  font-size: 42px;
 
   line-height: 1;
 
   cursor: pointer;
 
-  z-index: 101;
+  z-index: 1002;
+}
+
+
+/* =========================================================
+   ANTERIOR / PRÓXIMA
+   ========================================================= */
+
+.gallery__viewer-prev,
+.gallery__viewer-next {
+  position: absolute;
+
+  top: 50%;
+
+  transform:
+    translateY(-50%);
+
+  width: 54px;
+  height: 70px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: white;
+
+  font-size: 72px;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  z-index: 1002;
+
+  user-select: none;
+}
+
+.gallery__viewer-prev {
+  left: 10px;
+}
+
+.gallery__viewer-next {
+  right: 10px;
 }
 
 
@@ -424,101 +627,23 @@
   }
 }
 
-.gallery__album-title {
-  position: absolute;
-
-  z-index: 5;
-
-  left: 50%;
-  top: 109px;
-
-  transform: translateX(-50%);
-
-  width: auto;
-  height: auto;
-
-  display: block;
-}
-
-.gallery__hero-image {
-  width: 390px;
-  height: 275.36px;
-
-  position: absolute;
-
-  left: 0;
-  top: 0;
-
-  object-fit: cover;
-  object-position: center center;
-}
 
 /* =========================================================
-   CÂMERA / UPLOAD
+   RESPONSIVIDADE
    ========================================================= */
 
-.gallery__camera {
-  position: fixed;
+@media (max-width: 390px) {
+  .gallery {
+    width: 100%;
+  }
 
-  right: 20px;
-  bottom: 20px;
+  .gallery__hero,
+  .gallery__hero-image,
+  .gallery__background {
+    width: 100%;
+  }
 
-  width: 56px;
-  height: 56px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0;
-
-  border: 0;
-  border-radius: 50%;
-
-  background: var(--color-primary);
-  color: white;
-
-  font-size: 26px;
-  line-height: 1;
-
-  box-shadow:
-    0 4px 14px rgba(0, 0, 0, 0.22);
-
-  cursor: pointer;
-
-  z-index: 50;
-
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.gallery__camera:hover {
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 6px 18px rgba(0, 0, 0, 0.25);
-}
-
-.gallery__camera:active {
-  transform: scale(0.94);
-}
-
-.gallery__viewer-download {
-  position: absolute;
-  top: 24px;
-  right: 64px;
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  color: #333;
-  font-size: 24px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 2;
+  .gallery__grid {
+    width: calc(100% - 32px);
+  }
 }

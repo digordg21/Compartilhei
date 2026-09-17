@@ -11,6 +11,7 @@ import {
 import {
   getFavorites,
   unfavoritePhoto,
+  downloadFavorites,
   type FavoritePhotoItem,
 } from "../../services/favoritesApi";
 
@@ -21,7 +22,10 @@ import tituloFavoritos from "../../assets/decorations/TEXTO FAVORITOS.svg";
 import voltar from "../../assets/festa/voltar0.svg";
 import tituloFotos from "../../assets/festa/texto-fotos0.svg";
 
-// Mesmo ícone de favorito utilizado no Figma/Welcome.
+import iconeDownload from "../../assets/icons/download-galerias.svg";
+import textoDownload from "../../assets/decorations/TEXTO DOWNLOAD 2.svg";
+import textoBaixeFotos from "../../assets/decorations/TEXTO DOWNLOAD ALBÚM 2.svg";
+
 import favoritoIcon from "../../assets/decorations/BOTÃO CORAÇÃO vermelho svg.svg";
 
 type FavoriteItem = FavoritePhotoItem & {
@@ -38,6 +42,12 @@ function Favorites() {
 
   const [favoriteLoadingId, setFavoriteLoadingId] =
     useState<string | null>(null);
+
+  const [downloadingFavorites, setDownloadingFavorites] =
+    useState(false);
+
+  const [selectedPhotoIndex, setSelectedPhotoIndex] =
+    useState<number | null>(null);
 
   useEffect(() => {
     if (!eventSlug) {
@@ -142,6 +152,38 @@ function Favorites() {
             item.photoId !== favorite.photoId,
         ),
       );
+
+      setSelectedPhotoIndex((currentIndex) => {
+        if (currentIndex === null) {
+          return null;
+        }
+
+        const removedIndex = favorites.findIndex(
+          (item) =>
+            item.photoId === favorite.photoId,
+        );
+
+        if (removedIndex === -1) {
+          return currentIndex;
+        }
+
+        if (favorites.length === 1) {
+          return null;
+        }
+
+        if (currentIndex > removedIndex) {
+          return currentIndex - 1;
+        }
+
+        if (
+          currentIndex === removedIndex &&
+          currentIndex >= favorites.length - 1
+        ) {
+          return favorites.length - 2;
+        }
+
+        return currentIndex;
+      });
     } catch (err) {
       console.error(
         "Erro ao remover favorito:",
@@ -151,6 +193,181 @@ function Favorites() {
       setFavoriteLoadingId(null);
     }
   };
+
+  /*
+* ==========================================================
+* Download todos os favoritos
+* ==========================================================
+*/
+
+
+  const handleDownloadFavorites = async () => {
+    if (!eventSlug || downloadingFavorites) {
+      return;
+    }
+
+    setDownloadingFavorites(true);
+
+    try {
+      /*
+       * Dá tempo para o React renderizar o spinner
+       * antes do início do download.
+       */
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            resolve();
+          });
+        });
+      });
+
+      const blob = await downloadFavorites(eventSlug);
+
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "favoritos.zip";
+      link.style.display = "none";
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+    } catch (err) {
+      console.error(
+        "Erro ao baixar favoritos:",
+        err,
+      );
+    } finally {
+      window.setTimeout(() => {
+        setDownloadingFavorites(false);
+      }, 100);
+    }
+  };
+
+  /*
+* ==========================================================
+* Download foto unica
+* ==========================================================
+*/
+
+  const handleDownloadPhoto = async (photo: FavoriteItem) => {
+    if (!eventSlug) {
+      return;
+    }
+
+    try {
+      const API_BASE_URL =
+        import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5290";
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/events/${encodeURIComponent(
+          eventSlug,
+        )}/albums/${photo.albumId}/photos/${photo.photoId}/download`,
+        {
+          credentials: "include",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Não foi possível baixar a foto (${response.status}).`,
+        );
+      }
+
+      const blob = await response.blob();
+
+      const file = new File(
+        [blob],
+        photo.fileName,
+        {
+          type: blob.type || "image/jpeg",
+        },
+      );
+
+      if (
+        navigator.canShare &&
+        navigator.canShare({ files: [file] })
+      ) {
+        await navigator.share({
+          files: [file],
+        });
+
+        return;
+      }
+
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = photo.fileName;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      if (
+        error instanceof DOMException &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+
+      console.error(
+        "Erro ao compartilhar/baixar foto:",
+        error,
+      );
+    }
+  };
+
+  /*
+   * ==========================================================
+   * FULLSCREEN
+   * ==========================================================
+   */
+
+  const openPhoto = (index: number) => {
+    setSelectedPhotoIndex(index);
+  };
+
+  const closeViewer = () => {
+    setSelectedPhotoIndex(null);
+  };
+
+  const showPreviousPhoto = () => {
+    setSelectedPhotoIndex((currentIndex) => {
+      if (currentIndex === null || currentIndex <= 0) {
+        return currentIndex;
+      }
+
+      return currentIndex - 1;
+    });
+  };
+
+  const showNextPhoto = () => {
+    setSelectedPhotoIndex((currentIndex) => {
+      if (
+        currentIndex === null ||
+        currentIndex >= favorites.length - 1
+      ) {
+        return currentIndex;
+      }
+
+      return currentIndex + 1;
+    });
+  };
+
+  const selectedPhoto =
+    selectedPhotoIndex !== null
+      ? favorites[selectedPhotoIndex]
+      : null;
 
   const goHome = () => {
     if (!eventSlug) {
@@ -170,7 +387,6 @@ function Favorites() {
 
   return (
     <main className="favorites">
-
       {/* ======================================================
           FOTO DE CAPA
           ====================================================== */}
@@ -268,7 +484,7 @@ function Favorites() {
           </div>
         )}
 
-              {/* ======================================================
+      {/* ======================================================
           TÍTULO FOTOS
           ====================================================== */}
 
@@ -286,18 +502,17 @@ function Favorites() {
         !error &&
         favorites.length > 0 && (
           <section className="favorites__grid">
-
-            {favorites.map((photo) => (
+            {favorites.map((photo, index) => (
               <div
                 className="favorites__photo-wrapper"
                 key={photo.photoId}
               >
-
                 {/* FOTO */}
 
                 <button
                   type="button"
                   className="favorites__photo"
+                  onClick={() => openPhoto(index)}
                   aria-label={`Abrir ${photo.fileName}`}
                 >
                   <img
@@ -311,11 +526,10 @@ function Favorites() {
 
                 <button
                   type="button"
-                  className={`favorites__favorite ${
-                    favoriteLoadingId === photo.photoId
-                      ? "favorites__favorite--loading"
-                      : "favorites__favorite--active"
-                  }`}
+                  className={`favorites__favorite ${favoriteLoadingId === photo.photoId
+                    ? "favorites__favorite--loading"
+                    : "favorites__favorite--active"
+                    }`}
                   onClick={(event) => {
                     event.stopPropagation();
 
@@ -332,13 +546,152 @@ function Favorites() {
                     className="favorites__favorite-icon"
                   />
                 </button>
-                
-
               </div>
             ))}
-
           </section>
         )}
+
+      {/* ======================================================
+          DOWNLOAD DOS FAVORITOS
+          ====================================================== */}
+
+      {!loading &&
+        !error &&
+        favorites.length > 0 && (
+          <button
+            type="button"
+            className="favorites__download"
+            onClick={() => {
+              void handleDownloadFavorites();
+            }}
+            disabled={downloadingFavorites}
+            aria-label={
+              downloadingFavorites
+                ? "Baixando favoritos"
+                : "Baixar favoritos"
+            }
+          >
+            {downloadingFavorites ? (
+              <span
+                className="favorites__download-spinner"
+                aria-hidden="true"
+              />
+            ) : (
+              <div className="favorites__download-content">
+                <img
+                  src={iconeDownload}
+                  alt=""
+                  className="favorites__download-icon"
+                />
+
+                <div className="favorites__download-text">
+                  <img
+                    src={textoDownload}
+                    alt="Download"
+                    className="favorites__download-title"
+                  />
+
+                  <img
+                    src={textoBaixeFotos}
+                    alt="Baixe todas as fotos deste álbum."
+                    className="favorites__download-description"
+                  />
+                </div>
+              </div>
+            )}
+          </button>
+        )}
+
+      {/* ======================================================
+          FULLSCREEN
+          ====================================================== */}
+
+      {selectedPhoto && (
+        <div
+          className="favorites__viewer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Visualizador de foto"
+          onClick={closeViewer}
+        >
+          {/* DOWNLOAD */}
+          <div className="favorites__viewer-actions">
+            <button
+              type="button"
+              className="favorites__download-photo"
+              onClick={(event) => {
+                event.stopPropagation();
+
+                void handleDownloadPhoto(selectedPhoto);
+              }}
+              aria-label={`Baixar ${selectedPhoto.fileName}`}
+            >
+              <img
+                src={iconeDownload}
+                alt=""
+              />
+            </button>
+
+            { /* FECHAR */ }
+            <button
+              type="button"
+              className="favorites__viewer-close"
+              onClick={closeViewer}
+              aria-label="Fechar foto"
+            >
+              ×
+            </button>
+          </div>
+
+
+
+          {/* ANTERIOR */}
+
+          {selectedPhotoIndex !== null &&
+            selectedPhotoIndex > 0 && (
+              <button
+                type="button"
+                className="favorites__viewer-prev"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showPreviousPhoto();
+                }}
+                aria-label="Foto anterior"
+              >
+                ‹
+              </button>
+            )}
+
+          {/* FOTO */}
+
+          <img
+            src={selectedPhoto.displayUrl}
+            alt={selectedPhoto.fileName}
+            className="favorites__viewer-image"
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+          />
+
+          {/* PRÓXIMA */}
+
+          {selectedPhotoIndex !== null &&
+            selectedPhotoIndex <
+            favorites.length - 1 && (
+              <button
+                type="button"
+                className="favorites__viewer-next"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  showNextPhoto();
+                }}
+                aria-label="Próxima foto"
+              >
+                ›
+              </button>
+            )}
+        </div>
+      )}
     </main>
   );
 }

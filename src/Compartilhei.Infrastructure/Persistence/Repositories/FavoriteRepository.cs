@@ -115,4 +115,21 @@ public sealed class FavoriteRepository : IFavoriteRepository
             .Select(favorite => favorite.PhotoId)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<Guid>>
+    GetPhotoIdsByEventAndGuestSessionAsync(
+        Guid eventId,
+        Guid guestSessionId,
+        CancellationToken cancellationToken)
+    {
+        return await _dbContext.Favorites
+            .AsNoTracking()
+            .Where(favorite =>
+                favorite.GuestSessionId == guestSessionId &&
+                favorite.Photo.Album.EventId == eventId &&
+                favorite.Photo.Status == PhotoStatus.Available)
+            .OrderByDescending(favorite => favorite.CreatedAt)
+            .Select(favorite => favorite.PhotoId)
+            .ToListAsync(cancellationToken);
+    }
 }
