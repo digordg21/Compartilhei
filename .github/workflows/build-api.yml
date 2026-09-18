@@ -12,8 +12,11 @@ permissions:
   id-token: write
 
 env:
+  RESOURCE_GROUP: rg-compartilhei-prod
+
   REGISTRY: compartilheiacr.azurecr.io
   REGISTRY_NAME: compartilheiacr
+
   IMAGE_NAME: compartilhei-api
 
 jobs:
@@ -22,9 +25,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      # ============================================================
+      # Checkout
+      # ============================================================
       - name: Checkout
         uses: actions/checkout@v4
 
+
+      # ============================================================
+      # Azure Login - OIDC
+      # ============================================================
       - name: Azure Login
         uses: azure/login@v3
         with:
@@ -32,41 +43,169 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+
+      # ============================================================
+      # Validate Azure subscription
+      # ============================================================
       - name: Validate Azure access
+        shell: bash
         run: |
+          echo "========================================"
+          echo "Azure Account"
+          echo "========================================"
+
           az account show \
             --query "{name:name, subscriptionId:id, tenantId:tenantId}" \
             --output table
 
+          echo ""
+          echo "========================================"
+          echo "Azure Container Registry"
+          echo "========================================"
+
           az acr show \
             --name "$REGISTRY_NAME" \
-            --resource-group rg-compartilhei-prod \
-            --query "{name:name, loginServer:loginServer, sku:sku.name}" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "{name:name, loginServer:loginServer, sku:sku.name, id:id}" \
             --output table
 
-      - name: Login to Azure Container Registry
-        run: |
-          az acr login --name "$REGISTRY_NAME"
 
+      # ============================================================
+      # Validate Managed Identity -> ACR role assignment
+      # ============================================================
+      - name: Validate ACR permissions
+        shell: bash
+        run: |
+          echo "========================================"
+          echo "Managed Identity"
+          echo "========================================"
+
+          PRINCIPAL_ID=$(az identity show \
+            --name compartilhei-github-actions \
+            --resource-group "$RESOURCE_GROUP" \
+            --query principalId \
+            --output tsv)
+
+          echo "Principal ID:"
+          echo "$PRINCIPAL_ID"
+
+          echo ""
+          echo "========================================"
+          echo "ACR Resource ID"
+          echo "========================================"
+
+          ACR_ID=$(az acr show \
+            --name "$REGISTRY_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query id \
+            --output tsv)
+
+          echo "ACR ID:"
+          echo "$ACR_ID"
+
+          echo ""
+          echo "========================================"
+          echo "Role Assignments"
+          echo "========================================"
+
+          az role assignment list \
+            --assignee-object-id "$PRINCIPAL_ID" \
+            --scope "$ACR_ID" \
+            --all \
+            --query "[].{Role:roleDefinitionName,Scope:scope,PrincipalId:principalId}" \
+            --output table
+
+
+      # ============================================================
+      # Login into ACR
+      # ============================================================
+      - name: Login to Azure Container Registry
+        shell: bash
+        run: |
+          echo "Logging into ACR..."
+
+          az acr login \
+            --name "$REGISTRY_NAME"
+
+
+      # ============================================================
+      # Validate ACR data-plane access
+      # ============================================================
+      - name: Validate ACR repository access
+        shell: bash
+        run: |
+          echo "========================================"
+          echo "ACR repositories"
+          echo "========================================"
+
+          az acr repository list \
+            --name "$REGISTRY_NAME" \
+            --output table
+
+
+      # ============================================================
+      # Build Docker image
+      # ============================================================
       - name: Build Docker image
+        shell: bash
         env:
           SIXLABORS_LICENSE_KEY: ${{ secrets.SIXLABORS_LICENSE_KEY }}
           DOCKER_BUILDKIT: 1
         run: |
+          echo "========================================"
+          echo "Docker Build"
+          echo "========================================"
+
           docker build \
             --secret id=sixlabors_license,env=SIXLABORS_LICENSE_KEY \
-            --file src/Compartilhei.Api/Dockerfile \
+            --file src/Compartilhai.Api/Dockerfile \
             --tag "$REGISTRY/$IMAGE_NAME:${{ github.sha }}" \
             --tag "$REGISTRY/$IMAGE_NAME:latest" \
             .
 
-      - name: Push Docker image
-        run: |
-          docker push "$REGISTRY/$IMAGE_NAME:${{ github.sha }}"
-          docker push "$REGISTRY/$IMAGE_NAME:latest"
 
-      - name: Show published image
+      # ============================================================
+      # Validate generated image
+      # ============================================================
+      - name: Validate Docker image
+        shell: bash
         run: |
-          echo "Images published:"
+          echo "========================================"
+          echo "Docker Images"
+          echo "========================================"
+
+          docker images "$REGISTRY/$IMAGE_NAME"
+
+
+      # ============================================================
+      # Push Docker image - commit SHA
+      # ============================================================
+      - name: Push Docker image - SHA
+        shell: bash
+        run: |
+          docker push \
+            "$REGISTRY/$IMAGE_NAME:${{ github.sha }}"
+
+
+      # ============================================================
+      # Push Docker image - latest
+      # ============================================================
+      - name: Push Docker image - latest
+        shell: bash
+        run: |
+          docker push \
+            "$REGISTRY/$IMAGE_NAME:latest"
+
+
+      # ============================================================
+      # Final output
+      # ============================================================
+      - name: Show published images
+        shell: bash
+        run: |
+          echo "========================================"
+          echo "Published Images"
+          echo "========================================"
+
           echo "$REGISTRY/$IMAGE_NAME:${{ github.sha }}"
           echo "$REGISTRY/$IMAGE_NAME:latest"
