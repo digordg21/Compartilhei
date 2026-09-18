@@ -1,4 +1,4 @@
-name: Build and Push API
+name: Build and Deploy API
 
 on:
   push:
@@ -18,27 +18,29 @@ env:
   REGISTRY_NAME: compartilheiacr
 
   IMAGE_NAME: compartilhei-api
-
-  # NOTE: nome do Container App assumido a partir do IMAGE_NAME; nao confirmado no workflow original.
   CONTAINER_APP_NAME: compartilhei-api
 
 jobs:
+
+  # ============================================================
+  # BUILD + PUSH
+  # ============================================================
   build-and-push:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
 
     steps:
 
-      # ============================================================
+      # ----------------------------------------------------------
       # Checkout
-      # ============================================================
+      # ----------------------------------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
 
-      # ============================================================
+      # ----------------------------------------------------------
       # Azure Login - OIDC
-      # ============================================================
+      # ----------------------------------------------------------
       - name: Azure Login
         uses: azure/login@v3
         with:
@@ -47,9 +49,9 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
 
-      # ============================================================
-      # Validate Azure subscription
-      # ============================================================
+      # ----------------------------------------------------------
+      # Validate Azure
+      # ----------------------------------------------------------
       - name: Validate Azure access
         shell: bash
         run: |
@@ -69,82 +71,23 @@ jobs:
           az acr show \
             --name "$REGISTRY_NAME" \
             --resource-group "$RESOURCE_GROUP" \
-            --query "{name:name, loginServer:loginServer, sku:sku.name, id:id}" \
+            --query "{name:name, loginServer:loginServer, sku:sku.name}" \
             --output table
 
 
-      # ============================================================
-      # Get ACR resource ID
-      # ============================================================
-      - name: Get ACR resource ID
-        shell: bash
-        run: |
-          ACR_ID=$(az acr show \
-            --name "$REGISTRY_NAME" \
-            --resource-group "$RESOURCE_GROUP" \
-            --query id \
-            --output tsv)
-
-          echo "ACR_ID=$ACR_ID" >> "$GITHUB_ENV"
-
-          echo "ACR Resource ID:"
-          echo "$ACR_ID"
-
-
-      # ============================================================
-      # Validate role assignment
-      # ============================================================
-      - name: Validate ACR permissions
-        shell: bash
-        run: |
-          echo "========================================"
-          echo "ACR Role Assignments"
-          echo "========================================"
-
-          echo "Client ID usado pelo Azure Login:"
-          echo "${{ secrets.AZURE_CLIENT_ID }}"
-
-          echo ""
-          echo "Role assignments found for this identity:"
-
-          az role assignment list \
-            --assignee "${{ secrets.AZURE_CLIENT_ID }}" \
-            --scope "$ACR_ID" \
-            --include-inherited \
-            --query "[].{Role:roleDefinitionName,Scope:scope,PrincipalId:principalId}" \
-            --output table
-
-
-      # ============================================================
-      # Login into ACR
-      # ============================================================
+      # ----------------------------------------------------------
+      # Login to ACR
+      # ----------------------------------------------------------
       - name: Login to Azure Container Registry
         shell: bash
         run: |
-          echo "Logging into ACR..."
-
           az acr login \
             --name "$REGISTRY_NAME"
 
 
-      # ============================================================
-      # Validate ACR data-plane access
-      # ============================================================
-      - name: Validate ACR repository access
-        shell: bash
-        run: |
-          echo "========================================"
-          echo "ACR repositories"
-          echo "========================================"
-
-          az acr repository list \
-            --name "$REGISTRY_NAME" \
-            --output table
-
-
-      # ============================================================
+      # ----------------------------------------------------------
       # Build Docker image
-      # ============================================================
+      # ----------------------------------------------------------
       - name: Build Docker image
         shell: bash
         env:
@@ -163,22 +106,9 @@ jobs:
             .
 
 
-      # ============================================================
-      # Validate generated image
-      # ============================================================
-      - name: Validate Docker image
-        shell: bash
-        run: |
-          echo "========================================"
-          echo "Docker Images"
-          echo "========================================"
-
-          docker images "$REGISTRY/$IMAGE_NAME"
-
-
-      # ============================================================
-      # Push Docker image - SHA
-      # ============================================================
+      # ----------------------------------------------------------
+      # Push image - SHA
+      # ----------------------------------------------------------
       - name: Push Docker image - SHA
         shell: bash
         run: |
@@ -186,29 +116,19 @@ jobs:
             "$REGISTRY/$IMAGE_NAME:${{ github.sha }}"
 
 
-      # ============================================================
-      # Push Docker image - latest
-      # ============================================================
+      # ----------------------------------------------------------
+      # Push image - latest
+      # ----------------------------------------------------------
       - name: Push Docker image - latest
-        shell: bash
-        run: |
-          docker push \
-            "$REGISTRY/$IMAGE_NAME:latest"
+      shell: bash
+      run: |
+        docker push \
+          "$REGISTRY/$IMAGE_NAME:latest"
 
 
-      # ============================================================
-      # Final output
-      # ============================================================
-      - name: Show published images
-        shell: bash
-        run: |
-          echo "========================================"
-          echo "Published Images"
-          echo "========================================"
-
-          echo "$REGISTRY/$IMAGE_NAME:${{ github.sha }}"
-          echo "$REGISTRY/$IMAGE_NAME:latest"
-
+  # ============================================================
+  # DEPLOY
+  # ============================================================
   deploy:
     name: Deploy to Azure Container Apps
     needs: build-and-push
@@ -216,9 +136,9 @@ jobs:
 
     steps:
 
-      # ============================================================
+      # ----------------------------------------------------------
       # Azure Login - OIDC
-      # ============================================================
+      # ----------------------------------------------------------
       - name: Azure Login
         uses: azure/login@v3
         with:
@@ -227,14 +147,15 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
 
-      # ============================================================
-      # Set runtime secrets (Container Apps secret store)
-      # NOTE: nome do Container App (compartilhei-api) assumido por
-      # convencao com IMAGE_NAME; nao havia job de deploy previo para
-      # confirmar. Ajustar CONTAINER_APP_NAME acima se divergir.
-      # ============================================================
+      # ----------------------------------------------------------
+      # Set Container App secrets
+      # ----------------------------------------------------------
       - name: Set Container App secrets
         shell: bash
+        env:
+          SQL_CONNECTION_STRING: ${{ secrets.SQL_CONNECTION_STRING }}
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+
         run: |
           echo "========================================"
           echo "Setting Container App secrets"
@@ -244,13 +165,13 @@ jobs:
             --name "$CONTAINER_APP_NAME" \
             --resource-group "$RESOURCE_GROUP" \
             --secrets \
-              sql-connection-string="${{ secrets.SQL_CONNECTION_STRING }}" \
-              storage-connection-string="${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}"
+              sql-connection-string="$SQL_CONNECTION_STRING" \
+              storage-connection-string="$AZURE_STORAGE_CONNECTION_STRING"
 
 
-      # ============================================================
-      # Deploy new image and inject runtime env vars from secrets
-      # ============================================================
+      # ----------------------------------------------------------
+      # Update Container App
+      # ----------------------------------------------------------
       - name: Update Container App
         shell: bash
         run: |
@@ -267,9 +188,9 @@ jobs:
               AzureStorage__ConnectionString=secretref:storage-connection-string
 
 
-      # ============================================================
-      # Final output
-      # ============================================================
+      # ----------------------------------------------------------
+      # Show deployed revision
+      # ----------------------------------------------------------
       - name: Show deployed revision
         shell: bash
         run: |
