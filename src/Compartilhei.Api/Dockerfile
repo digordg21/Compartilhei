@@ -7,48 +7,39 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 WORKDIR /src
 
-COPY ["Compartilhei.slnx", "./"]
+COPY ["Compartilhei.sln", "./"]
 
 COPY ["src/Compartilhei.Api/Compartilhei.Api.csproj", "src/Compartilhei.Api/"]
 COPY ["src/Compartilhei.Application/Compartilhei.Application.csproj", "src/Compartilhei.Application/"]
 COPY ["src/Compartilhei.Domain/Compartilhei.Domain.csproj", "src/Compartilhei.Domain/"]
 COPY ["src/Compartilhei.Infrastructure/Compartilhei.Infrastructure.csproj", "src/Compartilhei.Infrastructure/"]
 
-# Restore
-RUN --mount=type=secret,id=sixlabors_license \
-    export SIXLABORS_LICENSE_KEY="$(cat /run/secrets/sixlabors_license)" && \
-    dotnet restore \
-        "src/Compartilhei.Api/Compartilhei.Api.csproj" \
-        -p:SixLaborsLicenseKey="$SIXLABORS_LICENSE_KEY"
+RUN dotnet restore "src/Compartilhei.Api/Compartilhei.Api.csproj"
 
 COPY . .
 
+# =========================
 # Build
-RUN --mount=type=secret,id=sixlabors_license \
-    export SIXLABORS_LICENSE_KEY="$(cat /run/secrets/sixlabors_license)" && \
+# =========================
+RUN --mount=type=secret,id=sixlabors_license,target=/src/src/Compartilhei.Infrastructure/sixlabors.lic \
     dotnet build \
         "src/Compartilhei.Api/Compartilhei.Api.csproj" \
         --configuration Release \
         --no-restore \
-        --output /app/build \
-        -p:SixLaborsLicenseKey="$SIXLABORS_LICENSE_KEY"
-
+        --output /app/build
 
 # =========================
 # Publish
 # =========================
 FROM build AS publish
 
-RUN --mount=type=secret,id=sixlabors_license \
-    export SIXLABORS_LICENSE_KEY="$(cat /run/secrets/sixlabors_license)" && \
+RUN --mount=type=secret,id=sixlabors_license,target=/src/src/Compartilhei.Infrastructure/sixlabors.lic \
     dotnet publish \
         "src/Compartilhei.Api/Compartilhei.Api.csproj" \
         --configuration Release \
         --no-restore \
         --output /app/publish \
-        /p:UseAppHost=false \
-        -p:SixLaborsLicenseKey="$SIXLABORS_LICENSE_KEY"
-
+        /p:UseAppHost=false
 
 # =========================
 # Runtime
