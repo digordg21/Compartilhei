@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+
+.git/
+.github/
+
+.vs/
+.vscode/
+
+TestResults/
+
+*.user
+*.suo
+
+docker-compose.yml

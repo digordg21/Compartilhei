@@ -5,25 +5,27 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 WORKDIR /src
 
-# Copia os projetos
+# Solution
 COPY ["Compartilhei.sln", "./"]
 
+# Project files
 COPY ["src/Compartilhei.Api/Compartilhei.Api.csproj", "src/Compartilhei.Api/"]
 COPY ["src/Compartilhei.Application/Compartilhei.Application.csproj", "src/Compartilhei.Application/"]
 COPY ["src/Compartilhei.Domain/Compartilhei.Domain.csproj", "src/Compartilhei.Domain/"]
 COPY ["src/Compartilhei.Infrastructure/Compartilhei.Infrastructure.csproj", "src/Compartilhei.Infrastructure/"]
 
-# Restore
+# Restore dependencies
 RUN dotnet restore "src/Compartilhei.Api/Compartilhei.Api.csproj"
 
-# Copia o restante do código
+# Copy source
 COPY . .
 
 # Build
-RUN dotnet build "src/Compartilhei.Api/Compartilhei.Api.csproj" \
-    -c Release \
+RUN dotnet build \
+    "src/Compartilhei.Api/Compartilhei.Api.csproj" \
+    --configuration Release \
     --no-restore \
-    -o /app/build
+    --output /app/build
 
 
 # =========================
@@ -31,10 +33,11 @@ RUN dotnet build "src/Compartilhei.Api/Compartilhei.Api.csproj" \
 # =========================
 FROM build AS publish
 
-RUN dotnet publish "src/Compartilhei.Api/Compartilhei.Api.csproj" \
-    -c Release \
+RUN dotnet publish \
+    "src/Compartilhei.Api/Compartilhei.Api.csproj" \
+    --configuration Release \
     --no-restore \
-    -o /app/publish \
+    --output /app/publish \
     /p:UseAppHost=false
 
 
@@ -47,9 +50,8 @@ WORKDIR /app
 
 COPY --from=publish /app/publish .
 
-# Azure Container Apps / .NET 8+
-EXPOSE 8080
-
 ENV ASPNETCORE_HTTP_PORTS=8080
+
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "Compartilhei.Api.dll"]

@@ -1,19 +1,30 @@
-name: Test Azure OIDC
+name: Build and Push API
 
 on:
   push:
     branches:
       - main
 
+  workflow_dispatch:
+
 permissions:
-  id-token: write
   contents: read
+  id-token: write
+
+env:
+  REGISTRY: compartilheiacr.azurecr.io
+  REGISTRY_NAME: compartilheiacr
+  IMAGE_NAME: compartilhei-api
 
 jobs:
-  test-azure:
+  build-and-push:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Azure Login
         uses: azure/login@v3
         with:
@@ -21,7 +32,38 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Azure Account
+      - name: Validate Azure access
         run: |
-          az account show
-          az account list --output table
+          echo "Azure account:"
+          az account show --query "{name:name, subscriptionId:id, tenantId:tenantId}" --output table
+
+          echo ""
+          echo "ACR:"
+          az acr show \
+            --name "$REGISTRY_NAME" \
+            --resource-group rg-compartilhei-prod \
+            --query "{name:name, loginServer:loginServer, sku:sku.name}" \
+            --output table
+
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name "$REGISTRY_NAME"
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --file src/Compartilhei.Api/Dockerfile \
+            --tag "$REGISTRY/$IMAGE_NAME:${{ github.sha }}" \
+            --tag "$REGISTRY/$IMAGE_NAME:latest" \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push "$REGISTRY/$IMAGE_NAME:${{ github.sha }}"
+          docker push "$REGISTRY/$IMAGE_NAME:latest"
+
+      - name: Show published image
+        run: |
+          echo "Images published:"
+          echo "$REGISTRY/$IMAGE_NAME:${{ github.sha }}"
+          echo "$REGISTRY/$IMAGE_NAME:latest"
