@@ -34,11 +34,10 @@ jobs:
 
       - name: Validate Azure access
         run: |
-          echo "Azure account:"
-          az account show --query "{name:name, subscriptionId:id, tenantId:tenantId}" --output table
+          az account show \
+            --query "{name:name, subscriptionId:id, tenantId:tenantId}" \
+            --output table
 
-          echo ""
-          echo "ACR:"
           az acr show \
             --name "$REGISTRY_NAME" \
             --resource-group rg-compartilhei-prod \
@@ -50,8 +49,12 @@ jobs:
           az acr login --name "$REGISTRY_NAME"
 
       - name: Build Docker image
+        env:
+          SIXLABORS_LICENSE_KEY: ${{ secrets.SIXLABORS_LICENSE_KEY }}
+          DOCKER_BUILDKIT: 1
         run: |
           docker build \
+            --secret id=sixlabors_license,env=SIXLABORS_LICENSE_KEY \
             --file src/Compartilhei.Api/Dockerfile \
             --tag "$REGISTRY/$IMAGE_NAME:${{ github.sha }}" \
             --tag "$REGISTRY/$IMAGE_NAME:latest" \

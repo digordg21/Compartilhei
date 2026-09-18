@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # =========================
 # Build
 # =========================
@@ -5,27 +7,31 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 WORKDIR /src
 
-# Solution
-COPY ["Compartilhei.slnx", "./"]
+COPY ["Compartilhei.sln", "./"]
 
-# Project files
 COPY ["src/Compartilhei.Api/Compartilhei.Api.csproj", "src/Compartilhei.Api/"]
 COPY ["src/Compartilhei.Application/Compartilhei.Application.csproj", "src/Compartilhei.Application/"]
 COPY ["src/Compartilhei.Domain/Compartilhei.Domain.csproj", "src/Compartilhei.Domain/"]
 COPY ["src/Compartilhei.Infrastructure/Compartilhei.Infrastructure.csproj", "src/Compartilhei.Infrastructure/"]
 
-# Restore dependencies
-RUN dotnet restore "src/Compartilhei.Api/Compartilhei.Api.csproj"
+# Restore
+RUN --mount=type=secret,id=sixlabors_license \
+    export SIXLABORS_LICENSE_KEY="$(cat /run/secrets/sixlabors_license)" && \
+    dotnet restore \
+        "src/Compartilhei.Api/Compartilhei.Api.csproj" \
+        -p:SixLaborsLicenseKey="$SIXLABORS_LICENSE_KEY"
 
-# Copy source
 COPY . .
 
 # Build
-RUN dotnet build \
-    "src/Compartilhei.Api/Compartilhei.Api.csproj" \
-    --configuration Release \
-    --no-restore \
-    --output /app/build
+RUN --mount=type=secret,id=sixlabors_license \
+    export SIXLABORS_LICENSE_KEY="$(cat /run/secrets/sixlabors_license)" && \
+    dotnet build \
+        "src/Compartilhei.Api/Compartilhei.Api.csproj" \
+        --configuration Release \
+        --no-restore \
+        --output /app/build \
+        -p:SixLaborsLicenseKey="$SIXLABORS_LICENSE_KEY"
 
 
 # =========================
@@ -33,12 +39,15 @@ RUN dotnet build \
 # =========================
 FROM build AS publish
 
-RUN dotnet publish \
-    "src/Compartilhei.Api/Compartilhei.Api.csproj" \
-    --configuration Release \
-    --no-restore \
-    --output /app/publish \
-    /p:UseAppHost=false
+RUN --mount=type=secret,id=sixlabors_license \
+    export SIXLABORS_LICENSE_KEY="$(cat /run/secrets/sixlabors_license)" && \
+    dotnet publish \
+        "src/Compartilhei.Api/Compartilhei.Api.csproj" \
+        --configuration Release \
+        --no-restore \
+        --output /app/publish \
+        /p:UseAppHost=false \
+        -p:SixLaborsLicenseKey="$SIXLABORS_LICENSE_KEY"
 
 
 # =========================
