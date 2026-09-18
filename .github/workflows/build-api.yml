@@ -71,47 +71,37 @@ jobs:
 
 
       # ============================================================
-      # Validate Managed Identity -> ACR role assignment
+      # Get ACR resource ID
       # ============================================================
-      - name: Validate ACR permissions
+      - name: Get ACR resource ID
         shell: bash
         run: |
-          echo "========================================"
-          echo "Managed Identity"
-          echo "========================================"
-
-          PRINCIPAL_ID=$(az identity show \
-            --name compartilhei-github \
-            --resource-group "$RESOURCE_GROUP" \
-            --query principalId \
-            --output tsv)
-
-          echo "Principal ID:"
-          echo "$PRINCIPAL_ID"
-
-          echo ""
-          echo "========================================"
-          echo "ACR Resource ID"
-          echo "========================================"
-
           ACR_ID=$(az acr show \
             --name "$REGISTRY_NAME" \
             --resource-group "$RESOURCE_GROUP" \
             --query id \
             --output tsv)
 
-          echo "ACR ID:"
+          echo "ACR_ID=$ACR_ID" >> "$GITHUB_ENV"
+
+          echo "ACR Resource ID:"
           echo "$ACR_ID"
 
-          echo ""
+
+      # ============================================================
+      # Validate role assignment
+      # ============================================================
+      - name: Validate ACR permissions
+        shell: bash
+        run: |
           echo "========================================"
-          echo "Role Assignments"
+          echo "ACR Role Assignments"
           echo "========================================"
 
           az role assignment list \
-            --assignee-object-id "$PRINCIPAL_ID" \
+            --assignee "${{ secrets.AZURE_CLIENT_ID }}" \
             --scope "$ACR_ID" \
-            --all \
+            --include-inherited \
             --query "[].{Role:roleDefinitionName,Scope:scope,PrincipalId:principalId}" \
             --output table
 
@@ -150,7 +140,7 @@ jobs:
         shell: bash
         env:
           SIXLABORS_LICENSE_KEY: ${{ secrets.SIXLABORS_LICENSE_KEY }}
-          DOCKER_BUILDKIT: 1
+
         run: |
           echo "========================================"
           echo "Docker Build"
@@ -178,7 +168,7 @@ jobs:
 
 
       # ============================================================
-      # Push Docker image - commit SHA
+      # Push Docker image - SHA
       # ============================================================
       - name: Push Docker image - SHA
         shell: bash
