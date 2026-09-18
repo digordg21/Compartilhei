@@ -119,10 +119,10 @@ jobs:
       # Push image - latest
       # ----------------------------------------------------------
       - name: Push Docker image - latest
-      shell: bash
-      run: |
-        docker push \
-          "$REGISTRY/$IMAGE_NAME:latest"
+        shell: bash
+        run: |
+          docker push \
+            "$REGISTRY/$IMAGE_NAME:latest"
 
 
   # ============================================================
