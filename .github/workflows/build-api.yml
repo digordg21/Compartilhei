@@ -148,7 +148,7 @@ jobs:
 
           docker build \
             --secret id=sixlabors_license,env=SIXLABORS_LICENSE_KEY \
-            --file src/Compartilhai.Api/Dockerfile \
+            --file src/Compartilhei.Api/Dockerfile \
             --tag "$REGISTRY/$IMAGE_NAME:${{ github.sha }}" \
             --tag "$REGISTRY/$IMAGE_NAME:latest" \
             .
