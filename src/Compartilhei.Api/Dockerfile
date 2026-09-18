@@ -7,7 +7,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
 WORKDIR /src
 
-COPY ["Compartilhei.sln", "./"]
+COPY ["Compartilhei.slnx", "./"]
 
 COPY ["src/Compartilhei.Api/Compartilhei.Api.csproj", "src/Compartilhei.Api/"]
 COPY ["src/Compartilhei.Application/Compartilhei.Application.csproj", "src/Compartilhei.Application/"]
