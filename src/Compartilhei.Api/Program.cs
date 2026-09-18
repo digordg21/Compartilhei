@@ -29,10 +29,7 @@ using Compartilhei.Infrastructure.Persistence.Repositories;
 using Compartilhei.Infrastructure.Processing;
 using Compartilhei.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
-
-
-
-
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +40,8 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "http://localhost:5173",
-                "http://192.168.18.3:5173"
+                "http://192.168.18.3:5173",
+                "https://SEU-STATIC-WEB-APP.azurestaticapps.net"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -68,6 +66,7 @@ builder.Services.AddDbContext<CompartilheiDbContext>(options =>
 {
     options.UseSqlServer(connectionString);
 });
+
 builder.Services
     .AddHealthChecks()
     .AddDbContextCheck<CompartilheiDbContext>();
@@ -112,22 +111,20 @@ builder.Services.AddHostedService<PhotoProcessingBackgroundService>();
 builder.Services.AddSingleton(sp =>
 {
     var options = sp
-        .GetRequiredService<Microsoft.Extensions.Options.IOptions<AzureStorageOptions>>()
+        .GetRequiredService<
+            Microsoft.Extensions.Options.IOptions<AzureStorageOptions>>()
         .Value;
 
     return new BlobServiceClient(options.ConnectionString);
 });
 
-builder.Services.AddSingleton<IPhotoProcessingQueue, InMemoryPhotoProcessingQueue>(); 
+builder.Services.AddSingleton<IPhotoProcessingQueue, InMemoryPhotoProcessingQueue>();
 builder.Services.AddScoped<IPhotoStorage, AzureBlobPhotoStorage>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
 builder.Services.AddScoped<IPhotoRepository, PhotoRepository>();
 builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
 builder.Services.AddScoped<IGuestSessionAccessor, GuestSessionAccessor>();
-builder.Services.AddScoped<IPhotoFileStorage, AzureBlobPhotoFileStorage>();
-builder.Services.AddScoped<IPhotoProcessor, ImageSharpPhotoProcessor>();
-builder.Services.AddScoped<IPhotoStorage, AzureBlobPhotoStorage>();
 builder.Services.AddScoped<IPhotoFileStorage, AzureBlobPhotoFileStorage>();
 builder.Services.AddScoped<IPhotoProcessor, ImageSharpPhotoProcessor>();
 builder.Services.AddScoped<IZipArchiveService, ZipArchiveService>();
@@ -147,8 +144,6 @@ builder.Services.AddScoped<GetFavoritesHandler>();
 builder.Services.AddScoped<DownloadFavoritesHandler>();
 builder.Services.AddScoped<DownloadPhotoHandler>();
 
-
-
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
@@ -163,11 +158,15 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
-
 app.MapControllers();
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false
+});
+
+app.MapHealthChecks("/health/ready");
+
 app.Run();
 
 public partial class Program

@@ -184,7 +184,10 @@ jobs:
             --image "$REGISTRY/$IMAGE_NAME:${{ github.sha }}" \
             --set-env-vars \
               ConnectionStrings__DefaultConnection=secretref:sql-connection-string \
-              AzureStorage__ConnectionString=secretref:storage-connection-string
+              AzureStorage__ConnectionString=secretref:storage-connection-string \
+              AzureStorage__ContainerName=photos \
+              AzureStorage__UploadSasExpirationMinutes=30 \
+              AzureStorage__ReadSasExpirationMinutes=60
 
 
       # ----------------------------------------------------------
