@@ -108,7 +108,6 @@ jobs:
             --assignee "${{ secrets.AZURE_CLIENT_ID }}" \
             --scope "$ACR_ID" \
             --include-inherited \
-            --all \
             --query "[].{Role:roleDefinitionName,Scope:scope,PrincipalId:principalId}" \
             --output table
 
