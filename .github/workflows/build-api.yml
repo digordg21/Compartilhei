@@ -81,7 +81,7 @@ jobs:
           echo "========================================"
 
           PRINCIPAL_ID=$(az identity show \
-            --name compartilhei-github-actions \
+            --name compartilhei-github \
             --resource-group "$RESOURCE_GROUP" \
             --query principalId \
             --output tsv)
