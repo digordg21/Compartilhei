@@ -19,6 +19,9 @@ env:
 
   IMAGE_NAME: compartilhei-api
 
+  # NOTE: nome do Container App assumido a partir do IMAGE_NAME; nao confirmado no workflow original.
+  CONTAINER_APP_NAME: compartilhei-api
+
 jobs:
   build-and-push:
     name: Build and Push Docker Image
@@ -205,3 +208,77 @@ jobs:
 
           echo "$REGISTRY/$IMAGE_NAME:${{ github.sha }}"
           echo "$REGISTRY/$IMAGE_NAME:latest"
+
+  deploy:
+    name: Deploy to Azure Container Apps
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # ============================================================
+      # Azure Login - OIDC
+      # ============================================================
+      - name: Azure Login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+
+      # ============================================================
+      # Set runtime secrets (Container Apps secret store)
+      # NOTE: nome do Container App (compartilhei-api) assumido por
+      # convencao com IMAGE_NAME; nao havia job de deploy previo para
+      # confirmar. Ajustar CONTAINER_APP_NAME acima se divergir.
+      # ============================================================
+      - name: Set Container App secrets
+        shell: bash
+        run: |
+          echo "========================================"
+          echo "Setting Container App secrets"
+          echo "========================================"
+
+          az containerapp secret set \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --secrets \
+              sql-connection-string="${{ secrets.SQL_CONNECTION_STRING }}" \
+              storage-connection-string="${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}"
+
+
+      # ============================================================
+      # Deploy new image and inject runtime env vars from secrets
+      # ============================================================
+      - name: Update Container App
+        shell: bash
+        run: |
+          echo "========================================"
+          echo "Updating Container App"
+          echo "========================================"
+
+          az containerapp update \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --image "$REGISTRY/$IMAGE_NAME:${{ github.sha }}" \
+            --set-env-vars \
+              ConnectionStrings__DefaultConnection=secretref:sql-connection-string \
+              AzureStorage__ConnectionString=secretref:storage-connection-string
+
+
+      # ============================================================
+      # Final output
+      # ============================================================
+      - name: Show deployed revision
+        shell: bash
+        run: |
+          echo "========================================"
+          echo "Deployed Revision"
+          echo "========================================"
+
+          az containerapp revision list \
+            --name "$CONTAINER_APP_NAME" \
+            --resource-group "$RESOURCE_GROUP" \
+            --query "[?properties.active].{Name:name, Active:properties.active, CreatedTime:properties.createdTime}" \
+            --output table
